@@ -24,8 +24,6 @@
 			height: auto;
 			cursor: pointer;
 			transition: all 0.3s ease-in-out;
-            float: left; /* Add this line */
-            clear: both; /* Add this line */
 		}
 		img:hover {
 			transform: scale(1.05);
@@ -38,11 +36,20 @@
 			cursor: pointer;
 			text-decoration: underline;
 		}
+		#cv {
+			position: fixed;
+			bottom: 10px;
+			right: 10px;
+			font-size: 20px;
+			cursor: pointer;
+			text-decoration: underline;
+		}
 	</style>
 </head>
 <body>
 	<main id="gallery"></main>
 	<div id="title" onclick="window.location.href='https://twitter.com/anubis_3100'">anubis3100</div>
+	<div id="cv" onclick="https://drive.google.com/file/d/1D2vqpCW_aJxCCHQeyT9zXicfQuR4vQvR/view?usp=sharing'">CV</div>
 	<script>
 		let page = 1;
 		let gallery = document.getElementById("gallery");
