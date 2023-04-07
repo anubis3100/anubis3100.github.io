@@ -19,21 +19,14 @@
 			padding: 10px;
 			box-sizing: border-box;
 		}
-		
 		img {
-	max-width: 100%;
-	height: auto;
-	cursor: pointer;
-	transition: all 0.3s ease-in-out;
-	margin-bottom: 10px;
-}
-img:nth-child(2n) {
-	margin-right: 0;
-}
-img:last-child {
-	margin-bottom: 0;
-}
-		
+			max-width: 100%;
+			height: auto;
+			cursor: pointer;
+			transition: all 0.3s ease-in-out;
+            float: left; /* Add this line */
+            clear: both; /* Add this line */
+		}
 		img:hover {
 			transform: scale(1.05);
 		}
@@ -49,7 +42,7 @@ img:last-child {
 </head>
 <body>
 	<main id="gallery"></main>
-	<div id="title" onclick="window.location.href='https://twitter.com/example'">anubis3100</div>
+	<div id="title" onclick="window.location.href='https://twitter.com/anubis_3100'">anubis3100</div>
 	<script>
 		let page = 1;
 		let gallery = document.getElementById("gallery");
