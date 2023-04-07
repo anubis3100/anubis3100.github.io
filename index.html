@@ -19,12 +19,21 @@
 			padding: 10px;
 			box-sizing: border-box;
 		}
+		
 		img {
-			max-width: 100%;
-			height: auto;
-			cursor: pointer;
-			transition: all 0.3s ease-in-out;
-		}
+	max-width: 100%;
+	height: auto;
+	cursor: pointer;
+	transition: all 0.3s ease-in-out;
+	margin-bottom: 10px;
+}
+img:nth-child(2n) {
+	margin-right: 0;
+}
+img:last-child {
+	margin-bottom: 0;
+}
+		
 		img:hover {
 			transform: scale(1.05);
 		}
