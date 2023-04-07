@@ -1,0 +1,99 @@
+<html>
+<head>
+	<title>anubis3100</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link href="https://fonts.googleapis.com/css2?family=Courier+Prime&display=swap" rel="stylesheet">
+	<style>
+		body {
+			background-color: black;
+			color: white;
+			font-family: "Courier New", Courier, monospace;
+			margin: 0;
+			padding: 0;
+		}
+		#gallery {
+			display: flex;
+			flex-wrap: wrap;
+			align-items: center;
+			justify-content: center;
+			padding: 10px;
+			box-sizing: border-box;
+		}
+		img {
+			max-width: 100%;
+			height: auto;
+			margin: 10px;
+			cursor: pointer;
+			transition: all 0.3s ease-in-out;
+		}
+		img:hover {
+			transform: scale(1.05);
+		}
+		#title {
+			position: fixed;
+			bottom: 10px;
+			left: 10px;
+			font-size: 20px;
+			cursor: pointer;
+			text-decoration: underline;
+		}
+		@media only screen and (min-width: 600px) {
+			img.portrait {
+				max-height: calc(50vh - 25px);
+				width: auto;
+			}
+			#gallery > img.portrait:nth-child(even) {
+				margin-right: 0;
+			}
+			#gallery > img.portrait:nth-child(odd) {
+				margin-left: 0;
+			}
+		}
+	</style>
+</head>
+<body>
+	<main id="gallery"></main>
+	<div id="title" onclick="window.location.href='https://twitter.com/anubis_3100'">anubis3100</div>
+	<script>
+		let page = 1;
+		let gallery = document.getElementById("gallery");
+
+		function getImages() {
+			let urls = [
+				"https://i.seadn.io/gcs/files/97c10ee530aa1a1ebe7293a5c4205fb9.jpg?auto=format&w=1000",
+				"https://i.seadn.io/gcs/files/c93cf4d5397e19e7e47b449ab4231c18.jpg?auto=format&w=1000",
+				"https://i.seadn.io/gcs/files/2db7809a891b513b5561bdf4b65a2cc9.jpg?auto=format&w=1000",
+				"https://i.seadn.io/gcs/files/322c5314677a48db47f8b02625cb7889.png?auto=format&w=1000",
+				"https://pbs.twimg.com/media/FtDhj_6X0Ac8j1t?format=jpg&name=4096x4096",
+				"https://pbs.twimg.com/media/FtDpUFnX0AQTFqd?format=jpg&name=medium",
+			];
+			let start = (page - 1) * 10;
+			let end = start + 10;
+			for (let i = start; i < end; i++) {
+				if (i >= urls.length) {
+					return false;
+				}
+				let img = document.createElement("img");
+				img.src = urls[i];
+				img.onclick = function() {
+					window.open(urls[i], "_blank");
+				};
+				if (img.width < img.height) {
+					img.classList.add("portrait");
+				}
+				gallery.appendChild(img);
+			}
+			page++;
+			return true;
+		}
+
+		window.addEventListener("scroll", function() {
+			if (window.innerHeight + window.scrollY >= document.body.offsetHeight) {
+				getImages();
+			}
+		});
+
+		getImages();
+	</script>
+</body>
+</html>
