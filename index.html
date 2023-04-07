@@ -65,8 +65,8 @@
 		let gallery = document.getElementById("gallery");
 
 		function showImages() {
-			let start = (page - 1) * 10;
-			let end = start + 10;
+			let start = (page - 1) * 100;
+			let end = start + 100;
 			for (let i = start; i < end; i++) {
 				if (i >= urls.length) {
 					return false;
