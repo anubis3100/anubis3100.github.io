@@ -45,45 +45,56 @@
 	<main id="gallery"></main>
 	<div id="title" onclick="window.open('https://twitter.com/anubis_3100', '_blank')">anubis3100</div>
 	<div id="cv" onclick="window.open('https://drive.google.com/file/d/1D2vqpCW_aJxCCHQeyT9zXicfQuR4vQvR/view?usp=sharing', '_blank')">CV</div>
-	<script>
-		let urls = [
-				"https://f8n-production-collection-assets.imgix.net/0xb2eD60a7Acfe35c7EE09dC155200CBBd3c13868C/102/nft.png?q=80&auto=format%2Ccompress&cs=srgb&w=3000&h=3000&fit=max",
-				"https://f8n-production-collection-assets.imgix.net/0xb2eD60a7Acfe35c7EE09dC155200CBBd3c13868C/62/nft.png?q=80&auto=format%2Ccompress&cs=srgb&w=3000&h=3000&fit=max",
-				"https://i.seadn.io/gcs/files/97c10ee530aa1a1ebe7293a5c4205fb9.jpg?auto=format&w=1000",
-				"https://i.seadn.io/gcs/files/c93cf4d5397e19e7e47b449ab4231c18.jpg?auto=format&w=1000",
-				"https://i.seadn.io/gcs/files/2db7809a891b513b5561bdf4b65a2cc9.jpg?auto=format&w=1000",
-				"https://i.seadn.io/gcs/files/322c5314677a48db47f8b02625cb7889.png?auto=format&w=1000",
-				"https://pbs.twimg.com/media/FtDhj_6X0Ac8j1t?format=jpg&name=4096x4096",
-				"https://pbs.twimg.com/media/FtDpUFnX0AQTFqd?format=jpg&name=medium",
-				"https://pbs.twimg.com/media/FtDKpvAWwAIVw5O?format=jpg&name=4096x4096",
-				"https://pbs.twimg.com/media/FtDKpu2WcAoYd0y?format=jpg&name=4096x4096",
-				"https://pbs.twimg.com/media/FtDKpu6XgAEgpn6?format=jpg&name=4096x4096",
-				"https://pbs.twimg.com/media/FkjWPBXWYAEbFg1?format=jpg&name=4096x4096",
-				"https://pbs.twimg.com/media/FrsNEbGXgAUUv62?format=jpg&name=large",
-		];
-		let page = 1;
-		let gallery = document.getElementById("gallery");
 
-		function showImages() {
-			let start = (page - 1) * 100;
-			let end = start + 100;
-			for (let i = start; i < end; i++) {
-				if (i >= urls.length) {
-					return false;
-				}
-				let img = document.createElement("img");
-				img.src = urls[i];
-				img.onclick = function() {
-					window.open('https://foundation.app/@MakingIt247/makingit/102', "_blank");
-					window.open('https://foundation.app/@MakingIt247/makingit/62', "_blank");
-				};
-				gallery.appendChild(img);
-			}
-			page++;
-			return true;
-		}
+<script>
+  let urls = [
+	  <!-- Broken Canopic Jar -->
+    { src: "https://f8n-production-collection-assets.imgix.net/0xb2eD60a7Acfe35c7EE09dC155200CBBd3c13868C/102/nft.png?q=80&auto=format%2Ccompress&cs=srgb&w=3000&h=3000&fit=max", link: "https://foundation.app/@MakingIt247/makingit/102" },
+    
+	  <!-- Road Rash -->
+    { src: "ihttps://f8n-production-collection-assets.imgix.net/0xb2eD60a7Acfe35c7EE09dC155200CBBd3c13868C/62/nft.png?q=80&auto=format%2Ccompress&cs=srgb&w=3000&h=3000&fit=max", link: "https://foundation.app/@MakingIt247/makingit/62" },
+   
+	  <!-- Self Portait on Papyrus -->
+    { src: "https://pbs.twimg.com/media/FkjWPBXWYAEbFg1?format=jpg&name=4096x4096", link: "https://foundation.app/@MakingIt247/makingit/34" },
+	  
+	  <!-- Painting Studies -->
+    { src: "https://i.seadn.io/gcs/files/97c10ee530aa1a1ebe7293a5c4205fb9.jpg?auto=format&w=1000", link: "https://opensea.io/assets/ethereum/0x6906b5224c08cdab5de1b73a85bf2cec77fa2e77/5" },
+    { src: "https://i.seadn.io/gcs/files/c93cf4d5397e19e7e47b449ab4231c18.jpg?auto=format&w=1000", link: "https://opensea.io/assets/ethereum/0x6906b5224c08cdab5de1b73a85bf2cec77fa2e77/4" },
+    { src: "https://i.seadn.io/gcs/files/2db7809a891b513b5561bdf4b65a2cc9.jpg?auto=format&w=1000", link: "https://opensea.io/assets/ethereum/0x6906b5224c08cdab5de1b73a85bf2cec77fa2e77/3" },
+	  
+	  <!-- Studies on Blue Paper -->
+    { src: "https://pbs.twimg.com/media/FtDpUFnX0AQTFqd?format=jpg&name=4096x4096", link: "https://app.manifold.xyz/c/studyblue1" },
+    { src: "https://pbs.twimg.com/media/FtDhj_6X0Ac8j1t?format=jpg&name=4096x4096", link: "https://example.com/link7" },
+    { src: "https://pbs.twimg.com/media/FtDKpvAWwAIVw5O?format=jpg&name=4096x4096", link: "https://example.com/link9" },
+    { src: "https://pbs.twimg.com/media/FtDKpu2WcAoYd0y?format=jpg&name=4096x4096", link: "https://example.com/link10" },
+    { src: "https://pbs.twimg.com/media/FtDKpu6XgAEgpn6?format=jpg&name=4096x4096", link: "https://example.com/link10" },
+	  
+	  <!-- Abstract studies -->
+    { src: "https://pbs.twimg.com/media/FrsNEbGXgAUUv62?format=jpg&name=large", link: "https://example.com/link10" },
+  ];
+  let page = 1;
+  let gallery = document.getElementById("gallery");
 
-		showImages();
-	</script>
+  function showImages() {
+    let start = (page - 1) * 100;
+    let end = start + 100;
+    for (let i = start; i < end; i++) {
+      if (i >= urls.length) {
+        return false;
+      }
+      let img = document.createElement("img");
+      img.src = urls[i].src;
+      img.onclick = function() {
+        window.open(urls[i].link, "_blank");
+      };
+      gallery.appendChild(img);
+    }
+    page++;
+    return true;
+  }
+
+  showImages();
+</script>
+
 </body>
 </html>
