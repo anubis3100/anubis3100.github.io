@@ -1,8 +1,7 @@
+<!DOCTYPE html>
 <html>
 <head>
 	<title>anubis3100</title>
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<link href="https://fonts.googleapis.com/css2?family=Courier+Prime&display=swap" rel="stylesheet">
 	<style>
 		body {
 			background-color: black;
@@ -12,17 +11,15 @@
 			padding: 0;
 		}
 		#gallery {
-			display: flex;
-			flex-wrap: wrap;
-			align-items: center;
-			justify-content: center;
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+			grid-gap: 10px;
 			padding: 10px;
 			box-sizing: border-box;
 		}
 		img {
 			max-width: 100%;
 			height: auto;
-			margin: 10px;
 			cursor: pointer;
 			transition: all 0.3s ease-in-out;
 		}
@@ -37,23 +34,11 @@
 			cursor: pointer;
 			text-decoration: underline;
 		}
-		@media only screen and (min-width: 600px) {
-			img.portrait {
-				max-height: calc(50vh - 25px);
-				width: auto;
-			}
-			#gallery > img.portrait:nth-child(even) {
-				margin-right: 0;
-			}
-			#gallery > img.portrait:nth-child(odd) {
-				margin-left: 0;
-			}
-		}
 	</style>
 </head>
 <body>
 	<main id="gallery"></main>
-	<div id="title" onclick="window.location.href='https://twitter.com/anubis_3100'">anubis3100</div>
+	<div id="title" onclick="window.location.href='https://twitter.com/example'">anubis3100</div>
 	<script>
 		let page = 1;
 		let gallery = document.getElementById("gallery");
@@ -78,9 +63,6 @@
 				img.onclick = function() {
 					window.open(urls[i], "_blank");
 				};
-				if (img.width < img.height) {
-					img.classList.add("portrait");
-				}
 				gallery.appendChild(img);
 			}
 			page++;
