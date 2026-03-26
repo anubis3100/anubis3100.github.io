@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="icon" type="image/png" href="assets/favicon.png" />
-  <title>anubis3100</title>
+  <title>anubis3100 — Studies</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap');
 
@@ -17,15 +17,12 @@
       --faint: #dddddd;
     }
 
-    html { scroll-behavior: smooth; }
-
     body {
       background: var(--bg);
       color: var(--ink);
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
     }
 
-    /* ── nav ── */
     nav {
       position: fixed;
       top: 0; left: 0; right: 0;
@@ -73,15 +70,8 @@
     }
 
     /* ── painting dropdown ── */
-    .nav-dropdown {
-      position: relative;
-    }
-
-    .nav-dropdown > a {
-      cursor: pointer;
-      user-select: none;
-    }
-
+    .nav-dropdown { position: relative; }
+    .nav-dropdown > a { cursor: pointer; user-select: none; }
     .dropdown-menu {
       display: none;
       position: absolute;
@@ -95,11 +85,7 @@
       gap: 14px;
       z-index: 300;
     }
-
-    .dropdown-menu.open {
-      display: flex;
-    }
-
+    .dropdown-menu.open { display: flex; }
     .dropdown-menu a {
       font-size: 11px;
       font-weight: 400;
@@ -111,30 +97,13 @@
       transition: opacity 0.2s;
       white-space: nowrap;
     }
-
     .dropdown-menu a:hover { opacity: 1; }
-    .dropdown-menu a.active {
-      opacity: 1;
-      text-decoration: underline;
-      text-underline-offset: 4px;
-    }
+    .dropdown-menu a.active { opacity: 1; text-decoration: underline; text-underline-offset: 4px; }
 
-    /* ── main ── */
-    main {
-      padding-top: 65px;
-    }
+    main { padding-top: 65px; }
 
-    /* ── section ── */
-    .section {
-      padding: 72px 0 80px;
-    }
+    .section { padding: 72px 0 80px; }
 
-    .section + .section {
-      padding-top: 24px;
-      border-top: 1px solid var(--faint);
-    }
-
-    /* ── horizontal strip ── */
     .strip {
       display: flex;
       flex-wrap: nowrap;
@@ -147,16 +116,11 @@
     }
 
     .strip:active { cursor: grabbing; }
-
     .strip::-webkit-scrollbar { height: 6px; }
     .strip::-webkit-scrollbar-track { background: var(--faint); }
     .strip::-webkit-scrollbar-thumb { background: var(--mid); border-radius: 3px; }
 
-    /* ── artwork item ── */
-    .artwork {
-      flex: 0 0 auto;
-      cursor: pointer;
-    }
+    .artwork { flex: 0 0 auto; cursor: pointer; }
 
     .artwork-img-wrap {
       height: 68vh;
@@ -174,10 +138,7 @@
 
     .artwork:hover .artwork-img-wrap img { opacity: 0.82; }
 
-    .artwork-info {
-      padding: 12px 2px 0;
-      max-width: 320px;
-    }
+    .artwork-info { padding: 12px 2px 0; max-width: 320px; }
 
     .artwork-title {
       font-size: 10px;
@@ -194,8 +155,35 @@
       font-weight: 300;
       letter-spacing: 0.05em;
       color: var(--mid);
-      line-height: 1.5;
     }
+
+    footer {
+      padding: 40px;
+      border-top: 1px solid var(--faint);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    footer span {
+      font-size: 10px;
+      font-weight: 300;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--mid);
+    }
+
+    footer a {
+      font-size: 10px;
+      font-weight: 300;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--mid);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    footer a:hover { color: var(--ink); }
 
     /* ── lightbox ── */
     #lightbox {
@@ -251,35 +239,6 @@
     }
 
     #lightbox-close:hover { opacity: 1; }
-
-    /* ── footer ── */
-    footer {
-      padding: 40px;
-      border-top: 1px solid var(--faint);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    footer span {
-      font-size: 10px;
-      font-weight: 300;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      color: var(--mid);
-    }
-
-    footer a {
-      font-size: 10px;
-      font-weight: 300;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      color: var(--mid);
-      text-decoration: none;
-      transition: color 0.2s;
-    }
-
-    footer a:hover { color: var(--ink); }
   </style>
 </head>
 <body>
@@ -287,12 +246,12 @@
   <nav>
     <a class="nav-logo" href="index.html">anubis3100</a>
     <ul class="nav-links">
-      <li><a href="index.html" class="active">Digital</a></li>
+      <li><a href="index.html">Digital</a></li>
       <li class="nav-dropdown">
-        <a id="painting-toggle">Painting</a>
+        <a id="painting-toggle" class="active">Painting</a>
         <div class="dropdown-menu" id="painting-menu">
           <a href="physical.html">Physical</a>
-          <a href="studies.html">Studies</a>
+          <a href="studies.html" class="active">Studies</a>
         </div>
       </li>
       <li><a href="cv.html">CV</a></li>
@@ -301,15 +260,10 @@
   </nav>
 
   <main>
-    <section class="section" id="digital">
-      <div class="strip" id="gallery-digital"></div>
+    <section class="section">
+      <div class="strip" id="gallery-studies"></div>
     </section>
   </main>
-
-  <footer>
-    <span>&copy; anubis3100</span>
-    <a href="https://twitter.com/anubis_3100" target="_blank">Twitter ↗</a>
-  </footer>
 
   <!-- Lightbox -->
   <div id="lightbox" role="dialog" aria-modal="true">
@@ -318,63 +272,21 @@
     <p id="lightbox-caption"></p>
   </div>
 
+  <footer>
+    <span>&copy; anubis3100</span>
+    <a href="https://twitter.com/anubis_3100" target="_blank">Twitter ↗</a>
+  </footer>
+
   <script>
-    // ── digital works ──────────────────────────────────────────
-    const digitalWorks = [
-      "bambi quick! the thicket!.gif",
-      "butterfly of the lazy simmering apple tree.gif",
-      "dream sweet in sea major.gif",
-      "fruits-for-the-prince.gif",
-      "here we sit.gif",
-      "i am big brother and his shadow.gif",
-      "it came to me in a dream.gif",
-      "just a couple of shareholders grabbing hold of their destinies on the open seas.gif",
-      "kerby.gif",
-      "king-1.gif",
-      "praying-one_weeping-mother.gif",
-      "river of peace.gif",
-      "sells interlinked within sells.gif",
-      "skin the unexplored duck.gif",
-      "sleeping-whales-4.gif",
-      "sos.gif",
-      "teds-cabin-pixalated.gif",
-      "the music in the mountains will never stop.gif",
-      "the-garden.gif",
-      "what-now.gif"
+    const studies = [
+      { title: "Untitled", meta: "", file: "studies-1.jpg" },
+      { title: "Untitled", meta: "", file: "studies-2.jpg" },
+      { title: "Untitled", meta: "", file: "studies-3.jpg" },
     ];
-
-    // ── helpers ─────────────────────────────────────────────────
-    function formatTitle(filename) {
-      return filename
-        .replace(/\.gif$/i, '')
-        .replace(/-/g, ' ')
-        .replace(/_/g, ', ');
-    }
-
-    function buildDigitalItem(file, i) {
-      const title = formatTitle(file);
-      const el = document.createElement('div');
-      el.className = 'artwork';
-      el.innerHTML = `
-        <div class="artwork-img-wrap">
-          <img src="assets/digital work/${file}" alt="${title}" loading="lazy" />
-        </div>
-        <div class="artwork-info">
-          <p class="artwork-title">${title}</p>
-          <p class="artwork-meta">Digital animation</p>
-        </div>
-      `;
-      el.addEventListener('click', () => openLightbox(file, title));
-      return el;
-    }
 
     function makeDraggable(el) {
       let isDown = false, startX, scrollLeft, moved = false;
-      el.addEventListener('mousedown', e => {
-        isDown = true; moved = false;
-        startX = e.pageX - el.offsetLeft;
-        scrollLeft = el.scrollLeft;
-      });
+      el.addEventListener('mousedown', e => { isDown = true; moved = false; startX = e.pageX - el.offsetLeft; scrollLeft = el.scrollLeft; });
       el.addEventListener('mouseleave', () => isDown = false);
       el.addEventListener('mouseup', () => isDown = false);
       el.addEventListener('mousemove', e => {
@@ -383,24 +295,37 @@
         moved = true;
         el.scrollLeft = scrollLeft - (e.pageX - el.offsetLeft - startX) * 1.2;
       });
-      // prevent click firing after drag
       el.addEventListener('click', e => { if (moved) e.stopPropagation(); }, true);
     }
 
-    // ── build galleries ─────────────────────────────────────────
-    const galleryDigital = document.getElementById('gallery-digital');
-    digitalWorks.forEach((file, i) => galleryDigital.appendChild(buildDigitalItem(file, i)));
-    makeDraggable(galleryDigital);
+    const gallery = document.getElementById('gallery-studies');
 
+    studies.forEach(work => {
+      const el = document.createElement('div');
+      el.className = 'artwork';
+      el.innerHTML = `
+        <div class="artwork-img-wrap">
+          <img src="assets/studies/${work.file}" alt="${work.title}" loading="lazy" />
+        </div>
+        <div class="artwork-info">
+          <p class="artwork-title">${work.title}</p>
+          <p class="artwork-meta">${work.meta}</p>
+        </div>
+      `;
+      el.addEventListener('click', () => openLightbox(`assets/studies/${work.file}`, work.title));
+      gallery.appendChild(el);
+    });
 
-    // ── lightbox (digital only) ─────────────────────────────────
+    makeDraggable(gallery);
+
+    // ── lightbox ─────────────────────────────────────────────────
     const lightbox = document.getElementById('lightbox');
     const lbImg = document.getElementById('lightbox-img');
     const lbCaption = document.getElementById('lightbox-caption');
     const lbClose = document.getElementById('lightbox-close');
 
     function openLightbox(src, caption) {
-      lbImg.src = 'assets/digital work/' + src;
+      lbImg.src = src;
       lbImg.alt = caption;
       lbCaption.textContent = caption;
       lightbox.classList.add('open');
@@ -417,13 +342,9 @@
     lightbox.addEventListener('click', e => { if (e.target === lightbox) closeLightbox(); });
     document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
 
-    // ── painting dropdown ───────────────────────────────────────
     const paintingToggle = document.getElementById('painting-toggle');
     const paintingMenu = document.getElementById('painting-menu');
-    paintingToggle.addEventListener('click', e => {
-      e.stopPropagation();
-      paintingMenu.classList.toggle('open');
-    });
+    paintingToggle.addEventListener('click', e => { e.stopPropagation(); paintingMenu.classList.toggle('open'); });
     document.addEventListener('click', () => paintingMenu.classList.remove('open'));
   </script>
 </body>
