@@ -239,6 +239,86 @@
     }
 
     #lightbox-close:hover { opacity: 1; }
+
+    /* ── hamburger button ── */
+    .nav-burger {
+      display: none;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px;
+      flex-direction: column;
+      gap: 5px;
+      flex-shrink: 0;
+    }
+    .nav-burger span {
+      display: block;
+      width: 22px;
+      height: 1.5px;
+      background: var(--ink);
+      transition: transform 0.2s, opacity 0.2s;
+    }
+    .nav-burger.open span:nth-child(1) { transform: translateY(6.5px) rotate(45deg); }
+    .nav-burger.open span:nth-child(2) { opacity: 0; }
+    .nav-burger.open span:nth-child(3) { transform: translateY(-6.5px) rotate(-45deg); }
+
+    /* ── tablet (768px – 1024px) ── */
+    @media (max-width: 1024px) and (min-width: 768px) {
+      nav { padding: 20px 28px; }
+      .nav-links { gap: 24px; }
+      .strip { padding: 0 28px 20px; }
+      footer { padding: 32px 28px; }
+    }
+
+    /* ── mobile (< 768px) ── */
+    @media (max-width: 767px) {
+      nav { padding: 16px 20px; }
+
+      .nav-burger { display: flex; }
+
+      .nav-links {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: var(--bg);
+        border-bottom: 1px solid var(--faint);
+        flex-direction: column;
+        gap: 0;
+        padding: 0 20px;
+      }
+      .nav-links.mobile-open { display: flex; }
+      .nav-links > li {
+        padding: 14px 0;
+        border-bottom: 1px solid var(--faint);
+        width: 100%;
+      }
+      .nav-links > li:last-child { border-bottom: none; }
+      .nav-links a { font-size: 12px; letter-spacing: 0.14em; }
+
+      .nav-dropdown { position: static; }
+      .dropdown-menu {
+        position: static !important;
+        display: flex !important;
+        border: none;
+        padding: 10px 0 4px 16px;
+        min-width: auto;
+        gap: 12px;
+      }
+      .dropdown-menu a { font-size: 11px; }
+
+      .strip { padding: 0 20px 14px; }
+      .artwork-img-wrap { height: 58vh; }
+
+      #lightbox { padding: 60px 16px 60px; }
+      #lightbox-close { right: 16px; top: 16px; }
+      #lightbox-caption { white-space: normal; width: calc(100% - 40px); text-align: center; }
+
+      .section { padding: 40px 0 48px; }
+
+      footer { padding: 24px 20px; flex-direction: column; gap: 8px; align-items: flex-start; }
+    }
   </style>
 </head>
 <body>
@@ -254,9 +334,13 @@
           <a href="studies.html" class="active">Studies</a>
         </div>
       </li>
+      <li><a href="video.html">Video</a></li>
       <li><a href="cv.html">CV</a></li>
       <li><a href="https://twitter.com/anubis_3100" target="_blank">↗</a></li>
     </ul>
+    <button class="nav-burger" id="nav-burger" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
   </nav>
 
   <main>
@@ -344,8 +428,25 @@
 
     const paintingToggle = document.getElementById('painting-toggle');
     const paintingMenu = document.getElementById('painting-menu');
-    paintingToggle.addEventListener('click', e => { e.stopPropagation(); paintingMenu.classList.toggle('open'); });
-    document.addEventListener('click', () => paintingMenu.classList.remove('open'));
+    paintingToggle.addEventListener('click', e => {
+      e.stopPropagation();
+      if (window.innerWidth >= 768) paintingMenu.classList.toggle('open');
+    });
+
+    // ── mobile nav ──────────────────────────────────────────────
+    const navBurger = document.getElementById('nav-burger');
+    const navLinksList = document.querySelector('.nav-links');
+    navBurger.addEventListener('click', e => {
+      e.stopPropagation();
+      navBurger.classList.toggle('open');
+      navLinksList.classList.toggle('mobile-open');
+    });
+
+    document.addEventListener('click', () => {
+      paintingMenu.classList.remove('open');
+      navBurger.classList.remove('open');
+      navLinksList.classList.remove('mobile-open');
+    });
   </script>
 </body>
 </html>

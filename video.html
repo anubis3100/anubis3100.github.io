@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="icon" type="image/png" href="assets/favicon.png" />
-  <title>anubis3100 — Physical</title>
+  <title>anubis3100 — Video</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap');
 
@@ -108,55 +108,42 @@
       padding-top: 65px;
     }
 
+    /* ── video section ── */
     .section {
-      padding: 72px 0 80px;
+      padding: 72px 40px 80px;
     }
 
-    /* ── horizontal strip ── */
-    .strip {
+    .video-grid {
       display: flex;
-      flex-wrap: nowrap;
-      gap: 3px;
-      overflow-x: auto;
-      overflow-y: hidden;
-      padding: 0 40px 24px;
-      cursor: grab;
-      -webkit-overflow-scrolling: touch;
+      flex-direction: column;
+      gap: 64px;
+      max-width: 960px;
     }
 
-    .strip:active { cursor: grabbing; }
-    .strip::-webkit-scrollbar { height: 6px; }
-    .strip::-webkit-scrollbar-track { background: var(--faint); }
-    .strip::-webkit-scrollbar-thumb { background: var(--mid); border-radius: 3px; }
+    .video-item {}
 
-    /* ── artwork item ── */
-    .artwork {
-      flex: 0 0 auto;
-      cursor: pointer;
-    }
-
-    .artwork-img-wrap {
-      height: 68vh;
-      overflow: hidden;
+    .video-embed-wrap {
+      position: relative;
+      width: 100%;
+      padding-bottom: 56.25%; /* 16:9 */
       background: #f5f5f5;
+      overflow: hidden;
     }
 
-    .artwork-img-wrap img {
+    .video-embed-wrap iframe {
+      position: absolute;
+      inset: 0;
+      width: 100%;
       height: 100%;
-      width: auto;
+      border: none;
       display: block;
-      object-fit: cover;
-      transition: opacity 0.4s ease;
     }
 
-    .artwork:hover .artwork-img-wrap img { opacity: 0.82; }
-
-    .artwork-info {
+    .video-info {
       padding: 12px 2px 0;
-      max-width: 320px;
     }
 
-    .artwork-title {
+    .video-title {
       font-size: 10px;
       font-weight: 500;
       letter-spacing: 0.18em;
@@ -165,7 +152,7 @@
       line-height: 1.5;
     }
 
-    .artwork-meta {
+    .video-meta {
       margin-top: 3px;
       font-size: 10px;
       font-weight: 300;
@@ -173,61 +160,6 @@
       color: var(--mid);
       line-height: 1.5;
     }
-
-    /* ── lightbox ── */
-    #lightbox {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(255,255,255,0.96);
-      z-index: 9999;
-      align-items: center;
-      justify-content: center;
-      padding: 80px 40px 40px;
-    }
-
-    #lightbox.open { display: flex; }
-
-    #lightbox-img {
-      max-width: min(88vw, 900px);
-      max-height: 82vh;
-      object-fit: contain;
-      display: block;
-    }
-
-    #lightbox-caption {
-      position: fixed;
-      bottom: 36px;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 10px;
-      font-weight: 500;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      color: var(--ink);
-      text-align: center;
-      white-space: nowrap;
-      pointer-events: none;
-    }
-
-    #lightbox-close {
-      position: fixed;
-      top: 22px;
-      right: 40px;
-      background: none;
-      border: none;
-      font-family: inherit;
-      font-size: 10px;
-      font-weight: 500;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      color: var(--ink);
-      cursor: pointer;
-      opacity: 0.5;
-      transition: opacity 0.2s;
-    }
-
-    #lightbox-close:hover { opacity: 1; }
 
     /* ── footer ── */
     footer {
@@ -284,7 +216,7 @@
     @media (max-width: 1024px) and (min-width: 768px) {
       nav { padding: 20px 28px; }
       .nav-links { gap: 24px; }
-      .strip { padding: 0 28px 20px; }
+      .section { padding: 56px 28px 64px; }
       footer { padding: 32px 28px; }
     }
 
@@ -326,14 +258,7 @@
       }
       .dropdown-menu a { font-size: 11px; }
 
-      .strip { padding: 0 20px 14px; }
-      .artwork-img-wrap { height: 58vh; }
-
-      #lightbox { padding: 60px 16px 60px; }
-      #lightbox-close { right: 16px; top: 16px; }
-      #lightbox-caption { white-space: normal; width: calc(100% - 40px); text-align: center; }
-
-      .section { padding: 40px 0 48px; }
+      .section { padding: 40px 20px 48px; }
 
       footer { padding: 24px 20px; flex-direction: column; gap: 8px; align-items: flex-start; }
     }
@@ -346,13 +271,13 @@
     <ul class="nav-links">
       <li><a href="index.html">Digital</a></li>
       <li class="nav-dropdown">
-        <a id="painting-toggle" class="active">Painting</a>
+        <a id="painting-toggle">Painting</a>
         <div class="dropdown-menu" id="painting-menu">
-          <a href="physical.html" class="active">Physical</a>
+          <a href="physical.html">Physical</a>
           <a href="studies.html">Studies</a>
         </div>
       </li>
-      <li><a href="video.html">Video</a></li>
+      <li><a href="video.html" class="active">Video</a></li>
       <li><a href="cv.html">CV</a></li>
       <li><a href="https://twitter.com/anubis_3100" target="_blank">↗</a></li>
     </ul>
@@ -363,16 +288,26 @@
 
   <main>
     <section class="section">
-      <div class="strip" id="gallery-physical"></div>
+      <div class="video-grid">
+
+        <div class="video-item">
+          <div class="video-embed-wrap">
+            <iframe
+              src="https://www.youtube.com/embed/D4xZp1IBla0"
+              title="Video work by anubis3100"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowfullscreen>
+            </iframe>
+          </div>
+          <div class="video-info">
+            <p class="video-title">Video work</p>
+            <p class="video-meta">Digital video</p>
+          </div>
+        </div>
+
+      </div>
     </section>
   </main>
-
-  <!-- Lightbox -->
-  <div id="lightbox" role="dialog" aria-modal="true">
-    <button id="lightbox-close" aria-label="Close">close ✕</button>
-    <img id="lightbox-img" src="" alt="" />
-    <p id="lightbox-caption"></p>
-  </div>
 
   <footer>
     <span>&copy; anubis3100</span>
@@ -380,81 +315,7 @@
   </footer>
 
   <script>
-    const physicalWorks = [
-      { title: "Untitled", meta: "", file: "physical-1.jpg"  },
-      { title: "Untitled", meta: "", file: "physical-2.jpg"  },
-      { title: "Untitled", meta: "", file: "physical-3.jpg"  },
-      { title: "Untitled", meta: "", file: "physical-4.jpg"  },
-      { title: "Untitled", meta: "", file: "physical-5.jpg"  },
-      { title: "Untitled", meta: "", file: "physical-6.avif" },
-      { title: "Untitled", meta: "", file: "physical-7.jpg"  },
-      { title: "Untitled", meta: "", file: "physical-8.avif" },
-      { title: "Untitled", meta: "", file: "physical-9.avif" },
-      { title: "Untitled", meta: "", file: "physical-10.jpg" },
-    ];
-
-    function makeDraggable(el) {
-      let isDown = false, startX, scrollLeft, moved = false;
-      el.addEventListener('mousedown', e => {
-        isDown = true; moved = false;
-        startX = e.pageX - el.offsetLeft;
-        scrollLeft = el.scrollLeft;
-      });
-      el.addEventListener('mouseleave', () => isDown = false);
-      el.addEventListener('mouseup', () => isDown = false);
-      el.addEventListener('mousemove', e => {
-        if (!isDown) return;
-        e.preventDefault();
-        moved = true;
-        el.scrollLeft = scrollLeft - (e.pageX - el.offsetLeft - startX) * 1.2;
-      });
-      el.addEventListener('click', e => { if (moved) e.stopPropagation(); }, true);
-    }
-
-    const gallery = document.getElementById('gallery-physical');
-
-    physicalWorks.forEach(work => {
-      const el = document.createElement('div');
-      el.className = 'artwork';
-      el.innerHTML = `
-        <div class="artwork-img-wrap">
-          <img src="assets/physical paintings/${work.file}" alt="${work.title}" loading="lazy" />
-        </div>
-        <div class="artwork-info">
-          <p class="artwork-title">${work.title}</p>
-          <p class="artwork-meta">${work.meta}</p>
-        </div>
-      `;
-      el.addEventListener('click', () => openLightbox(`assets/physical paintings/${work.file}`, work.title));
-      gallery.appendChild(el);
-    });
-
-    makeDraggable(gallery);
-
-    // ── lightbox ─────────────────────────────────────────────────
-    const lightbox = document.getElementById('lightbox');
-    const lbImg = document.getElementById('lightbox-img');
-    const lbCaption = document.getElementById('lightbox-caption');
-    const lbClose = document.getElementById('lightbox-close');
-
-    function openLightbox(src, caption) {
-      lbImg.src = src;
-      lbImg.alt = caption;
-      lbCaption.textContent = caption;
-      lightbox.classList.add('open');
-      document.body.style.overflow = 'hidden';
-    }
-
-    function closeLightbox() {
-      lightbox.classList.remove('open');
-      lbImg.src = '';
-      document.body.style.overflow = '';
-    }
-
-    lbClose.addEventListener('click', closeLightbox);
-    lightbox.addEventListener('click', e => { if (e.target === lightbox) closeLightbox(); });
-    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
-
+    // ── painting dropdown ───────────────────────────────────────
     const paintingToggle = document.getElementById('painting-toggle');
     const paintingMenu = document.getElementById('painting-menu');
     paintingToggle.addEventListener('click', e => {
