@@ -320,6 +320,60 @@
 
       footer { padding: 24px 20px; flex-direction: column; gap: 8px; align-items: flex-start; }
     }
+
+    /* ── dark mode ── */
+    body { transition: background-color 0.3s ease, color 0.3s ease; }
+    body.dark {
+      --bg: #0f0f0f;
+      --ink: #eeeeee;
+      --mid: #888888;
+      --faint: #2a2a2a;
+    }
+
+    /* ── theme toggle ── */
+    .theme-toggle {
+      background: none;
+      border: none;
+      font-family: inherit;
+      font-size: 11px;
+      font-weight: 400;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--ink);
+      opacity: 0.45;
+      transition: opacity 0.2s;
+      padding: 0;
+      flex-shrink: 0;
+    }
+    .theme-toggle:hover { opacity: 1; }
+
+    /* ── custom cursor ── */
+    * { cursor: none !important; }
+    .cursor-dot {
+      position: fixed;
+      width: 7px;
+      height: 7px;
+      background: var(--ink);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 99999;
+      transform: translate(-50%, -50%);
+      transition: width 0.18s ease, height 0.18s ease, opacity 0.18s ease, background 0.3s ease;
+      top: 0; left: 0;
+    }
+    .cursor-dot.expanded { width: 28px; height: 28px; opacity: 0.25; }
+
+    /* ── page transitions ── */
+    @keyframes pgFadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes pgFadeOut {
+      from { opacity: 1; }
+      to   { opacity: 0; }
+    }
+    body { animation: pgFadeIn 0.4s ease both; }
+    body.leaving { animation: pgFadeOut 0.25s ease both; }
   </style>
 </head>
 <body>
@@ -339,6 +393,7 @@
       <li><a href="cv.html" class="active">CV</a></li>
       <li><a href="https://twitter.com/anubis_3100" target="_blank">↗</a></li>
     </ul>
+    <button class="theme-toggle" id="theme-toggle" aria-label="Toggle dark mode">◑</button>
     <button class="nav-burger" id="nav-burger" aria-label="Menu">
       <span></span><span></span><span></span>
     </button>
@@ -570,6 +625,41 @@
       paintingMenu.classList.remove('open');
       navBurger.classList.remove('open');
       navLinksList.classList.remove('mobile-open');
+    });
+
+    // ── custom cursor ─────────────────────────────────────────────
+    const cursorDot = document.createElement('div');
+    cursorDot.className = 'cursor-dot';
+    document.body.appendChild(cursorDot);
+    document.addEventListener('mousemove', e => {
+      cursorDot.style.left = e.clientX + 'px';
+      cursorDot.style.top = e.clientY + 'px';
+    });
+    document.addEventListener('mouseleave', () => cursorDot.style.opacity = '0');
+    document.addEventListener('mouseenter', () => cursorDot.style.opacity = '');
+    document.querySelectorAll('a, button, .artwork, [role="button"]').forEach(el => {
+      el.addEventListener('mouseenter', () => cursorDot.classList.add('expanded'));
+      el.addEventListener('mouseleave', () => cursorDot.classList.remove('expanded'));
+    });
+
+    // ── page transitions ──────────────────────────────────────────
+    document.querySelectorAll('a[href]').forEach(link => {
+      if (link.target === '_blank') return;
+      const href = link.getAttribute('href');
+      if (!href || href.startsWith('#') || href.startsWith('http') || href.startsWith('mailto')) return;
+      link.addEventListener('click', function(e) {
+        e.preventDefault();
+        document.body.classList.add('leaving');
+        setTimeout(() => { window.location.href = this.getAttribute('href'); }, 260);
+      });
+    });
+
+    // ── dark mode ─────────────────────────────────────────────────
+    const themeToggle = document.getElementById('theme-toggle');
+    if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark');
+    themeToggle.addEventListener('click', () => {
+      document.body.classList.toggle('dark');
+      localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
     });
   </script>
 </body>
