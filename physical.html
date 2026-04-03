@@ -147,7 +147,7 @@
       height: 100%;
       width: auto;
       display: block;
-      object-fit: contain;
+      background: var(--bg);
       transition: opacity 0.4s ease, transform 0.55s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     }
 
@@ -185,9 +185,11 @@
       inset: 0;
       background: rgba(255,255,255,0);
       z-index: 9999;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 80px 40px 40px;
+      gap: 16px;
+      padding: 70px 40px 70px;
       transition: background 0.3s ease, visibility 0s linear 0.3s;
     }
 
@@ -207,8 +209,8 @@
       to   { opacity: 0; transform: scale(0.91); }
     }
     @keyframes lbFadeUp {
-      from { opacity: 0; transform: translateX(-50%) translateY(10px); }
-      to   { opacity: 1; transform: translateX(-50%) translateY(0);    }
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0);    }
     }
     @keyframes lbCloseFade {
       from { opacity: 0; }
@@ -217,9 +219,10 @@
 
     #lightbox-img {
       max-width: min(88vw, 900px);
-      max-height: 82vh;
+      max-height: 72vh;
       object-fit: contain;
       display: block;
+      background: var(--bg);
     }
     #lightbox-img.lb-entering {
       animation: lbImgIn 0.44s cubic-bezier(0.34, 1.56, 0.64, 1) both;
@@ -235,17 +238,13 @@
     }
 
     #lightbox-caption {
-      position: fixed;
-      bottom: 36px;
-      left: 50%;
-      transform: translateX(-50%);
       font-size: 10px;
       font-weight: 500;
       letter-spacing: 0.2em;
       text-transform: uppercase;
       color: var(--ink);
       text-align: center;
-      white-space: nowrap;
+      max-width: min(88vw, 900px);
       pointer-events: none;
     }
 
@@ -375,9 +374,9 @@
       .strip { padding: 14px 20px 14px; }
       .artwork-img-wrap { height: 58vh; }
 
-      #lightbox { padding: 60px 16px 60px; }
+      #lightbox { padding: 56px 16px 56px; }
       #lightbox-close { right: 16px; top: 16px; }
-      #lightbox-caption { white-space: normal; width: calc(100% - 40px); text-align: center; }
+      #lightbox-caption { width: 100%; text-align: center; }
 
       .section { padding: 40px 0 48px; }
 
@@ -606,13 +605,13 @@
     // ── custom cursor ─────────────────────────────────────────────
     const cursorDot = document.createElement('div');
     cursorDot.className = 'cursor-dot';
+    cursorDot.style.left = '-100px';
+    cursorDot.style.top = '-100px';
     document.body.appendChild(cursorDot);
-    document.addEventListener('mousemove', e => {
+    window.addEventListener('mousemove', e => {
       cursorDot.style.left = e.clientX + 'px';
       cursorDot.style.top = e.clientY + 'px';
     });
-    document.addEventListener('mouseleave', () => cursorDot.style.opacity = '0');
-    document.addEventListener('mouseenter', () => cursorDot.style.opacity = '');
 
 
     // ── page transitions ──────────────────────────────────────────
