@@ -23,11 +23,18 @@ const digitalWorks = [
   "what-now.gif"
 ];
 
-const physicalWorks = Array.from({ length: 10 }, (_, i) => ({
-  file: `physical-${i + 1}.jpg`,
-  title: 'Untitled',
-  meta: ''
-}));
+const physicalWorks = [
+  { file: 'physical-1.jpg',  title: 'Untitled', meta: '' },
+  { file: 'physical-2.jpg',  title: 'Untitled', meta: '' },
+  { file: 'physical-3.jpg',  title: 'Untitled', meta: '' },
+  { file: 'physical-4.jpg',  title: 'Untitled', meta: '' },
+  { file: 'physical-5.jpg',  title: 'Untitled', meta: '' },
+  { file: 'physical-6.avif', title: 'Untitled', meta: '' },
+  { file: 'physical-7.jpg',  title: 'Untitled', meta: '' },
+  { file: 'physical-8.avif', title: 'Untitled', meta: '' },
+  { file: 'physical-9.avif', title: 'Untitled', meta: '' },
+  { file: 'physical-10.jpg', title: 'Untitled', meta: '' },
+];
 
 const studiesWorks = [
   { file: 'studies-1.jpg', title: 'Untitled', meta: '' },
@@ -96,13 +103,13 @@ function pageDigital() {
 
 function pagePhysical() {
   const frag = document.createDocumentFragment();
-  frag.appendChild(buildGallery(physicalWorks, 'assets/'));
+  frag.appendChild(buildGallery(physicalWorks, 'assets/physical paintings/'));
   return frag;
 }
 
 function pageStudies() {
   const frag = document.createDocumentFragment();
-  frag.appendChild(buildGallery(studiesWorks, 'assets/'));
+  frag.appendChild(buildGallery(studiesWorks, 'assets/studies/'));
   return frag;
 }
 
