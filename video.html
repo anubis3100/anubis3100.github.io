@@ -190,6 +190,13 @@
 
     footer a:hover { color: var(--ink); }
 
+    /* ── nav right group ── */
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 36px;
+    }
+
     /* ── hamburger button ── */
     .nav-burger {
       display: none;
@@ -289,21 +296,33 @@
     }
     .theme-toggle:hover { opacity: 1; }
 
-    /* ── custom cursor ── */
+    /* ── custom cursor (pixel art) ── */
     * { cursor: none !important; }
+    :root { --cursor-outline: rgba(255,255,255,0.85); }
+    body.dark { --cursor-outline: rgba(0,0,0,0.75); }
     .cursor-dot {
       position: fixed;
-      width: 7px;
-      height: 7px;
+      width: 2px;
+      height: 2px;
       background: var(--ink);
-      border-radius: 50%;
       pointer-events: none;
       z-index: 99999;
-      transform: translate(-50%, -50%);
-      transition: width 0.18s ease, height 0.18s ease, opacity 0.18s ease, background 0.3s ease;
       top: 0; left: 0;
+      image-rendering: pixelated;
+      box-shadow:
+        0px 2px 0 0 var(--ink),
+        2px 2px 0 0 var(--ink),
+        0px 4px 0 0 var(--ink), 2px 4px 0 0 var(--ink), 4px 4px 0 0 var(--ink),
+        0px 6px 0 0 var(--ink), 2px 6px 0 0 var(--ink), 4px 6px 0 0 var(--ink), 6px 6px 0 0 var(--ink),
+        0px 8px 0 0 var(--ink), 2px 8px 0 0 var(--ink), 4px 8px 0 0 var(--ink),
+        0px 10px 0 0 var(--ink), 4px 10px 0 0 var(--ink), 6px 10px 0 0 var(--ink),
+        6px 12px 0 0 var(--ink), 8px 12px 0 0 var(--ink);
+      filter:
+        drop-shadow(1px 0px 0 var(--cursor-outline))
+        drop-shadow(-1px 0px 0 var(--cursor-outline))
+        drop-shadow(0px 1px 0 var(--cursor-outline))
+        drop-shadow(0px -1px 0 var(--cursor-outline));
     }
-    .cursor-dot.expanded { width: 28px; height: 28px; opacity: 0.25; }
 
     /* ── page transitions ── */
     @keyframes pgFadeIn {
@@ -322,7 +341,8 @@
 
   <nav>
     <a class="nav-logo" href="index.html">anubis3100</a>
-    <ul class="nav-links">
+    <div class="nav-right">
+      <ul class="nav-links">
       <li><a href="index.html">Digital</a></li>
       <li class="nav-dropdown">
         <a id="painting-toggle">Painting</a>
@@ -334,8 +354,9 @@
       <li><a href="video.html" class="active">Video</a></li>
       <li><a href="cv.html">CV</a></li>
       <li><a href="https://twitter.com/anubis_3100" target="_blank">↗</a></li>
-    </ul>
-    <button class="theme-toggle" id="theme-toggle" aria-label="Toggle dark mode">◑</button>
+      </ul>
+      <button class="theme-toggle" id="theme-toggle" aria-label="Toggle dark mode">◑</button>
+    </div>
     <button class="nav-burger" id="nav-burger" aria-label="Menu">
       <span></span><span></span><span></span>
     </button>
@@ -403,10 +424,7 @@
     });
     document.addEventListener('mouseleave', () => cursorDot.style.opacity = '0');
     document.addEventListener('mouseenter', () => cursorDot.style.opacity = '');
-    document.querySelectorAll('a, button, .artwork, [role="button"]').forEach(el => {
-      el.addEventListener('mouseenter', () => cursorDot.classList.add('expanded'));
-      el.addEventListener('mouseleave', () => cursorDot.classList.remove('expanded'));
-    });
+
 
     // ── page transitions ──────────────────────────────────────────
     document.querySelectorAll('a[href]').forEach(link => {
