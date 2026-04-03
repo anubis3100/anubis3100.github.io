@@ -268,6 +268,9 @@
       .section { padding: 40px 20px 48px; }
 
       footer { padding: 24px 20px; flex-direction: column; gap: 8px; align-items: flex-start; }
+      /* hide custom cursor on touch devices */
+      * { cursor: auto !important; }
+      .cursor-dot { display: none !important; }
     }
 
     /* ── dark mode ── */
@@ -297,9 +300,14 @@
     .theme-toggle:hover { opacity: 1; }
 
     /* ── custom cursor (pixel art) ── */
-    * { cursor: none !important; }
+    @media (hover: hover) and (pointer: fine) {
+      * { cursor: none !important; }
+    }
     :root { --cursor-outline: rgba(255,255,255,0.85); }
     body.dark { --cursor-outline: rgba(0,0,0,0.75); }
+    @media (hover: none), (pointer: coarse) {
+      .cursor-dot { display: none; }
+    }
     .cursor-dot {
       position: fixed;
       width: 2px;
@@ -420,10 +428,24 @@
     cursorDot.style.left = '-100px';
     cursorDot.style.top = '-100px';
     document.body.appendChild(cursorDot);
+
+    let cursorOnPage = true;
     window.addEventListener('mousemove', e => {
+      cursorOnPage = true;
       cursorDot.style.left = e.clientX + 'px';
       cursorDot.style.top = e.clientY + 'px';
     });
+    // When mouse drifts to the scrollbar, flag it — don't hide immediately
+    document.addEventListener('mouseleave', () => { cursorOnPage = false; });
+    document.addEventListener('mouseenter', () => { cursorOnPage = true; });
+    // Only move the dot off-screen if scrolling happens while off the page
+    // (i.e. the user is dragging the scrollbar, not just wheel-scrolling)
+    window.addEventListener('scroll', () => {
+      if (!cursorOnPage) {
+        cursorDot.style.left = '-100px';
+        cursorDot.style.top = '-100px';
+      }
+    }, { passive: true });
 
 
     // ── page transitions ──────────────────────────────────────────
