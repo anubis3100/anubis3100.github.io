@@ -371,18 +371,32 @@ paintingToggle.addEventListener('click', e => {
 
 const navBurger    = document.getElementById('nav-burger');
 const navLinksList = document.querySelector('.nav-links');
+const navOverlay   = document.getElementById('nav-overlay');
 
-navBurger.addEventListener('click', e => {
-  e.stopPropagation();
-  navBurger.classList.toggle('open');
-  navLinksList.classList.toggle('mobile-open');
-});
-
-document.addEventListener('click', () => {
+function closeAllMenus() {
   paintingMenu.classList.remove('open');
   navBurger.classList.remove('open');
   navLinksList.classList.remove('mobile-open');
+  if (navOverlay) navOverlay.classList.remove('active');
+}
+
+navBurger.addEventListener('click', e => {
+  e.stopPropagation();
+  const isOpen = navBurger.classList.toggle('open');
+  navLinksList.classList.toggle('mobile-open', isOpen);
+  // Show/hide the transparent overlay so tapping outside reliably closes the nav
+  // on iOS Safari (which doesn't bubble click events from non-interactive elements)
+  if (navOverlay) navOverlay.classList.toggle('active', isOpen);
 });
+
+// Close on overlay tap — handles iOS where document click doesn't always fire
+if (navOverlay) {
+  navOverlay.addEventListener('click',      closeAllMenus);
+  navOverlay.addEventListener('touchstart', closeAllMenus, { passive: true });
+}
+
+// Keep the document click handler as a fallback for desktop dropdown close
+document.addEventListener('click', closeAllMenus);
 
 // ── custom cursor ──────────────────────────────────────────────────────────────
 

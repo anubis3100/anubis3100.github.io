@@ -27,6 +27,10 @@ nav {
   align-items: center;
   justify-content: space-between;
   padding: 22px 40px;
+  /* safe-area for notch / Dynamic Island iPhones */
+  padding-top: max(22px, calc(env(safe-area-inset-top) + 10px));
+  padding-left: max(40px, env(safe-area-inset-left));
+  padding-right: max(40px, env(safe-area-inset-right));
   border-bottom: 1px solid var(--faint);
 }
 
@@ -413,6 +417,8 @@ nav {
 /* ── footer ── */
 footer {
   padding: 40px;
+  /* safe-area for iPhone home indicator */
+  padding-bottom: max(40px, calc(env(safe-area-inset-bottom) + 20px));
   border-top: 1px solid var(--faint);
   display: flex;
   align-items: center;
@@ -446,6 +452,17 @@ footer a:hover { color: var(--ink); }
   gap: 36px;
 }
 
+/* ── nav overlay (closes mobile menu on iOS tap-outside) ── */
+#nav-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 190; /* below nav (200) but above page content */
+  background: transparent;
+  -webkit-tap-highlight-color: transparent;
+}
+#nav-overlay.active { display: block; }
+
 /* ── hamburger button ── */
 .nav-burger {
   display: none;
@@ -456,6 +473,7 @@ footer a:hover { color: var(--ink); }
   flex-direction: column;
   gap: 5px;
   flex-shrink: 0;
+  touch-action: manipulation; /* removes 300ms tap delay on iOS */
 }
 
 .nav-burger span {
@@ -482,7 +500,13 @@ footer a:hover { color: var(--ink); }
 
 /* ── mobile (< 768px) ── */
 @media (max-width: 767px) {
-  nav { padding: 16px 20px; }
+  nav {
+    padding: 16px 20px;
+    /* keep safe-area for notch iPhones on mobile too */
+    padding-top: max(16px, calc(env(safe-area-inset-top) + 8px));
+    padding-left: max(20px, env(safe-area-inset-left));
+    padding-right: max(20px, env(safe-area-inset-right));
+  }
   .nav-burger { display: flex; }
 
   .nav-links {
@@ -495,6 +519,8 @@ footer a:hover { color: var(--ink); }
     flex-direction: column;
     gap: 0;
     padding: 0 20px;
+    /* keep nav-links above the overlay */
+    z-index: 201;
   }
   .nav-links.mobile-open { display: flex; }
   .nav-links > li {
@@ -503,7 +529,11 @@ footer a:hover { color: var(--ink); }
     width: 100%;
   }
   .nav-links > li:last-child { border-bottom: none; }
-  .nav-links a { font-size: 12px; letter-spacing: 0.14em; }
+  .nav-links a {
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    touch-action: manipulation; /* removes 300ms tap delay on iOS */
+  }
 
   .nav-dropdown { position: static; }
   .dropdown-menu {
@@ -514,11 +544,18 @@ footer a:hover { color: var(--ink); }
     min-width: auto;
     gap: 12px;
   }
-  .dropdown-menu a { font-size: 11px; }
+  .dropdown-menu a {
+    font-size: 11px;
+    touch-action: manipulation;
+  }
 
-  /* gallery */
+  /* gallery — use svh (safe/small viewport height) where supported,
+     fall back to vh; prevents layout-shift when iOS URL bar hides */
   .strip { padding: 14px 20px 14px; }
-  .artwork-img-wrap { height: 58vh; }
+  .artwork-img-wrap {
+    height: 58vh;
+    height: 58svh; /* overrides vh on browsers that support it */
+  }
 
   /* lightbox */
   #lightbox { padding: 56px 16px 56px; }
@@ -537,7 +574,13 @@ footer a:hover { color: var(--ink); }
   .video-section { padding: 40px 20px 48px; }
 
   /* footer */
-  footer { padding: 24px 20px; flex-direction: column; gap: 8px; align-items: flex-start; }
+  footer {
+    padding: 24px 20px;
+    padding-bottom: max(24px, calc(env(safe-area-inset-bottom) + 16px));
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+  }
 
   /* hide custom cursor on touch devices */
   * { cursor: auto !important; }
@@ -574,6 +617,7 @@ body.dark #lightbox.open { background: rgba(15,15,15,0.96); }
   transition: opacity 0.2s;
   padding: 0;
   flex-shrink: 0;
+  touch-action: manipulation; /* removes 300ms tap delay on iOS */
 }
 .theme-toggle:hover { opacity: 1; }
 
