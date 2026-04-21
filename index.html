@@ -5,7 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="icon" type="image/png" href="assets/favicon.png" />
   <title>anubis3100</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css?v=29" />
+  <script>
+    // set dark mode before first paint to avoid flash
+    if (localStorage.getItem('theme') !== 'light') {
+      document.documentElement.classList.add('dark-preload');
+    }
+  </script>
+  <style>
+    html.dark-preload { background: #141311; }
+    html.dark-preload body { background: #141311; color: #efece4; }
+  </style>
 </head>
 <body>
 
@@ -32,7 +42,6 @@
     </button>
   </nav>
 
-  <!-- Overlay to close mobile nav reliably on iOS -->
   <div id="nav-overlay" aria-hidden="true"></div>
 
   <main id="app"></main>
@@ -42,13 +51,12 @@
     <a href="https://twitter.com/anubis_3100" target="_blank">Twitter ↗</a>
   </footer>
 
-  <!-- Lightbox -->
   <div id="lightbox" role="dialog" aria-modal="true">
     <button id="lightbox-close" aria-label="Close">close ✕</button>
-    <img id="lightbox-img" src="" alt="" />
+    <img id="lightbox-img" alt="" />
     <p id="lightbox-caption"></p>
   </div>
 
-  <script src="app.js?v=2"></script>
+  <script src="app.js?v=28"></script>
 </body>
 </html>
