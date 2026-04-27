@@ -134,7 +134,7 @@
     // initial positions: Fibonacci-angle spiral in world space (px)
     const positions = nodes.map((_, i) => {
       const angle = i * 2.399963; // golden angle ≈ 137.5°
-      const r = 80 * Math.sqrt(i + 1);
+      const r = 35 * Math.sqrt(i + 1);
       return [Math.cos(angle) * r, Math.sin(angle) * r];
     });
     // per-node velocities (frame-based, no dt needed)
@@ -196,10 +196,10 @@
     //   spring attraction on edges  →  pulls connected nodes together
     //   node-node repulsion         →  keeps nodes from overlapping
     //   gentle centering            →  prevents the graph drifting off-screen
-    const REST_LEN = 160;    // px — edge rest length
-    const SPRING_K = 0.006;  // spring stiffness
-    const REP      = 3500;   // repulsion strength
-    const CENTER_K = 0.0003; // centering pull
+    const REST_LEN = 80;     // px — edge rest length
+    const SPRING_K = 0.009;  // spring stiffness
+    const REP      = 1400;   // repulsion strength
+    const CENTER_K = 0.0004; // centering pull
     const DAMP     = 0.86;   // velocity damping (lower = settles faster)
 
     function step() {
