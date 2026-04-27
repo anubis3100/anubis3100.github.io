@@ -197,11 +197,11 @@
     //   node-node repulsion         →  keeps nodes from overlapping
     //   group cohesion              →  pulls same-type nodes toward their centroid
     //   gentle centering            →  prevents the graph drifting off-screen
-    const REST_LEN = 28;     // px — edge rest length
-    const SPRING_K = 0.012;  // spring stiffness
-    const REP      = 320;    // repulsion (keeps nodes from overlapping)
-    const GROUP_K  = 0.003;  // very gentle cohesion — clusters form but don't fight drags
-    const CENTER_K = 0.0003; // very gentle centering — graph stays together but nodes stay put
+    const REST_LEN = 28;      // px — edge rest length
+    const SPRING_K = 0.012;   // spring stiffness
+    const REP      = 320;     // repulsion (keeps nodes from overlapping)
+    const GROUP_K  = 0;       // no cohesion — nodes stay where dropped
+    const CENTER_K = 0.00005; // near-zero centering — only prevents graph drifting off-screen
     const DAMP     = 0.82;
 
     // pre-build group membership lists (stable across frames)
