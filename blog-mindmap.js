@@ -342,7 +342,7 @@
         const dim = highlighted && !highlighted.has(i);
 
         const isHub  = n.kind === 'hub';
-        const baseR  = isHub ? 13 : n.kind === 'post' ? 7 : 4.5;
+        const baseR  = isHub ? 6.5 : n.kind === 'post' ? 7 : 4.5;
         const scaled = baseR * Math.max(0.6, Math.min(1.8, zoom));
         const radius = scaled * ((isHover || isDrag) ? 1.55 : 1);
         const alpha  = dim ? 0.18 : 0.88;
@@ -414,7 +414,7 @@
       let best = -1, bestD2 = Infinity;
       for (let i = 0; i < N; i++) {
         const p    = toScreen(positions[i][0], positions[i][1]);
-        const bR   = nodes[i].kind === 'hub' ? 13 : nodes[i].kind === 'post' ? 7 : 4.5;
+        const bR   = nodes[i].kind === 'hub' ? 6.5 : nodes[i].kind === 'post' ? 7 : 4.5;
         const base = bR * Math.max(0.6, Math.min(1.8, zoom));
         const hit  = base + 7;
         const dx   = p.x - sx, dy = p.y - sy;
