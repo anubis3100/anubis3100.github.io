@@ -133,14 +133,11 @@
       if (hubIndices[key] != null) edges.push({ from: i, to: hubIndices[key] });
     });
 
-    // hello world is the "root" — connect it to every hub
-    const helloIdx = nodes.findIndex(n =>
-      n.kind === 'post' &&
-      (n.slug || '').toLowerCase().replace(/[-_\s]/g, '') === 'helloworld'
-    );
-    if (helloIdx >= 0) {
-      Object.values(hubIndices).forEach(hi => {
-        if (hi !== hubIndices['post']) edges.push({ from: helloIdx, to: hi });
+    // journal hub is the root — connect it to every other hub
+    const journalHubIdx = hubIndices['post'];
+    if (journalHubIdx != null) {
+      Object.entries(hubIndices).forEach(([section, hi]) => {
+        if (section !== 'post') edges.push({ from: journalHubIdx, to: hi });
       });
     }
 
@@ -493,15 +490,16 @@
         const wdy = (e.clientY - lastPy) / zoom;
         positions[dragNodeIdx][0] += wdx;
         positions[dragNodeIdx][1] += wdy;
-        // dragging a hub moves the whole cluster with it
+        // hub drag: release cluster nodes from frozen state so spring physics trails them
+        // (Obsidian-style — nodes lag behind and spring-follow the hub naturally)
         if (nodes[dragNodeIdx].kind === 'hub') {
           const hubSection = nodes[dragNodeIdx].section;
           nodes.forEach((n, i) => {
             if (i === dragNodeIdx) return;
             const key = n.kind === 'post' ? 'post' : n.section;
             if (key === hubSection) {
-              positions[i][0] += wdx;
-              positions[i][1] += wdy;
+              pinnedNodes.delete(i);
+              settledNodes.delete(i);
             }
           });
         }
