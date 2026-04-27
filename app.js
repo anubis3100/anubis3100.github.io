@@ -510,8 +510,8 @@ function pageBlogList() {
       <h1 class="blog-h1">Notes &amp; thoughts</h1>
       <p class="blog-sub">Written between studio sessions.</p>
       <div class="blog-view-toggle" role="tablist">
-        <button class="bvt-btn" data-view="list" role="tab">List</button>
         <button class="bvt-btn active" data-view="map" role="tab">Map</button>
+        <button class="bvt-btn" data-view="list" role="tab">List</button>
       </div>
     </div>
     <div class="blog-list-view" id="blog-list-view" hidden>

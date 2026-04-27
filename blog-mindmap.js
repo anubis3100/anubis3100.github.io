@@ -432,23 +432,30 @@
       }
 
       if (mode === 'dragNode' && dragNodeIdx >= 0) {
-        const [tx, ty, tz] = unproject(lx, ly);
-        // place node at unprojected point; keep it at the same radius from origin
-        const cur = positions[dragNodeIdx];
-        const r = Math.hypot(cur[0], cur[1], cur[2]) || 1;
-        const nr = Math.hypot(tx, ty, tz) || 0.0001;
-        // softly steer toward target rather than snap
-        const steerK = 0.6;
-        positions[dragNodeIdx][0] += (tx - cur[0]) * steerK;
-        positions[dragNodeIdx][1] += (ty - cur[1]) * steerK;
-        positions[dragNodeIdx][2] += (tz - cur[2]) * steerK;
-        // re-normalize to roughly the previous radius so it doesn't fly off
-        const p = positions[dragNodeIdx];
-        const pr = Math.hypot(p[0], p[1], p[2]) || 0.0001;
-        const want = Math.max(0.85, Math.min(1.15, pr));
-        positions[dragNodeIdx][0] = p[0] / pr * want;
-        positions[dragNodeIdx][1] = p[1] / pr * want;
-        positions[dragNodeIdx][2] = p[2] / pr * want;
+        // delta-based drag: convert screen delta → world delta, no singularity at centre
+        const dx = e.clientX - lastPx;
+        const dy = e.clientY - lastPy;
+        lastPx = e.clientX; lastPy = e.clientY;
+        if (Math.abs(dx) > 0 || Math.abs(dy) > 0) {
+          const dvx = dx / (R * zoom);
+          const dvy = dy / (R * zoom);
+          // inverse of forward rotateXY(p, rotX, rotY):
+          //   forward = rotateY(rotY) then rotateX(rotX)
+          //   inverse = rotateX(-rotX) then rotateY(-rotY)
+          const cx = Math.cos(-rotX), sx_ = Math.sin(-rotX);
+          const dvy0 = dvy * cx;
+          const dvz0 = dvy * sx_;
+          const cy = Math.cos(-rotY), sy_ = Math.sin(-rotY);
+          const dvx1 = dvx * cy + dvz0 * sy_;
+          const dvz1 = -dvx * sy_ + dvz0 * cy;
+          const p = positions[dragNodeIdx];
+          p[0] += dvx1; p[1] += dvy0; p[2] += dvz1;
+          // keep node on unit sphere
+          const r = Math.hypot(p[0], p[1], p[2]) || 0.0001;
+          positions[dragNodeIdx][0] = p[0] / r;
+          positions[dragNodeIdx][1] = p[1] / r;
+          positions[dragNodeIdx][2] = p[2] / r;
+        }
         noteInteraction();
         return;
       }
