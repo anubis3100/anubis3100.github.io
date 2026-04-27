@@ -206,7 +206,7 @@
     const GROUP_K_PIN = 0.0006;  // gentler cohesion for pinned nodes (nudges back to native cluster)
     const CENTER_K    = 0.0003;  // centering — keeps graph on screen
     const DAMP        = 0.90;    // damping for free nodes
-    const DAMP_PINNED = 0.80;    // stronger damping — pinned nodes float briefly then settle
+    const DAMP_PINNED = 0.50;    // stronger damping — pinned nodes float briefly then settle
 
     // pre-build group membership lists (stable across frames)
     const groupMembers = { post: [], digital: [], physical: [], studies: [] };
