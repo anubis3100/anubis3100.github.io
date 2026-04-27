@@ -266,9 +266,10 @@
           if (settledNodes.has(j)) continue;
           const a = positions[i], b = positions[j];
           const dx = a[0] - b[0], dy = a[1] - b[1];
-          const d2 = dx * dx + dy * dy + 0.1;
-          const d  = Math.sqrt(d2);
-          const f  = REP / d2;
+          const d2  = dx * dx + dy * dy + 0.1;
+          const d   = Math.sqrt(d2);
+          const rep = (nodes[i].kind === 'hub' || nodes[j].kind === 'hub') ? REP * 5 : REP;
+          const f   = rep / d2;
           const ux = dx / d, uy = dy / d;
           force[i][0] += ux * f; force[i][1] += uy * f;
           force[j][0] -= ux * f; force[j][1] -= uy * f;
