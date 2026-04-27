@@ -139,6 +139,8 @@
     });
     // per-node velocities (frame-based, no dt needed)
     const vel = nodes.map(() => [0, 0]);
+    // nodes locked in place after being manually dragged
+    const pinnedNodes = new Set();
 
     // ── view state ────────────────────────────────────────────────────────
     let panX = 0, panY = 0;          // world-origin offset from canvas center (px)
@@ -197,11 +199,11 @@
     //   node-node repulsion         →  keeps nodes from overlapping
     //   group cohesion              →  pulls same-type nodes toward their centroid
     //   gentle centering            →  prevents the graph drifting off-screen
-    const REST_LEN = 28;      // px — edge rest length
-    const SPRING_K = 0.012;   // spring stiffness
-    const REP      = 320;     // repulsion (keeps nodes from overlapping)
-    const GROUP_K  = 0;       // no cohesion — nodes stay where dropped
-    const CENTER_K = 0.00005; // near-zero centering — only prevents graph drifting off-screen
+    const REST_LEN = 28;     // px — edge rest length
+    const SPRING_K = 0.012;  // spring stiffness
+    const REP      = 320;    // repulsion (keeps nodes from overlapping)
+    const GROUP_K  = 0.003;  // cohesion — keeps unpinned nodes clustered
+    const CENTER_K = 0.0003; // centering — keeps unpinned graph together
     const DAMP     = 0.82;
 
     // pre-build group membership lists (stable across frames)
@@ -212,20 +214,21 @@
     });
 
     function step() {
-      const force = nodes.map(() => [0, 0]);
+      const force    = nodes.map(() => [0, 0]); // full forces for unpinned nodes
+      const repForce = nodes.map(() => [0, 0]); // repulsion only, for pinned nodes
 
-      // spring forces along edges
+      // spring forces along edges (unpinned only — pinned nodes don't get pulled)
       for (const e of edges) {
         const a = positions[e.from], b = positions[e.to];
         const dx = b[0] - a[0], dy = b[1] - a[1];
         const d  = Math.hypot(dx, dy) || 0.0001;
         const f  = (d - REST_LEN) * SPRING_K;
         const ux = dx / d, uy = dy / d;
-        force[e.from][0] += ux * f; force[e.from][1] += uy * f;
-        force[e.to  ][0] -= ux * f; force[e.to  ][1] -= uy * f;
+        if (!pinnedNodes.has(e.from)) { force[e.from][0] += ux * f; force[e.from][1] += uy * f; }
+        if (!pinnedNodes.has(e.to))   { force[e.to  ][0] -= ux * f; force[e.to  ][1] -= uy * f; }
       }
 
-      // pairwise repulsion (O(N²) — fine up to a few hundred nodes)
+      // pairwise repulsion — applied to ALL nodes (prevents overlapping everywhere)
       for (let i = 0; i < N; i++) {
         for (let j = i + 1; j < N; j++) {
           const a = positions[i], b = positions[j];
@@ -234,32 +237,41 @@
           const d  = Math.sqrt(d2);
           const f  = REP / d2;
           const ux = dx / d, uy = dy / d;
-          force[i][0] += ux * f; force[i][1] += uy * f;
-          force[j][0] -= ux * f; force[j][1] -= uy * f;
+          force[i][0]    += ux * f; force[i][1]    += uy * f;
+          force[j][0]    -= ux * f; force[j][1]    -= uy * f;
+          repForce[i][0] += ux * f; repForce[i][1] += uy * f;
+          repForce[j][0] -= ux * f; repForce[j][1] -= uy * f;
         }
       }
 
-      // group cohesion — gently pull each node toward its group's centroid
+      // group cohesion + centering — unpinned nodes only
       for (const members of Object.values(groupMembers)) {
         if (members.length < 2) continue;
         let cx = 0, cy = 0;
         for (const i of members) { cx += positions[i][0]; cy += positions[i][1]; }
         cx /= members.length; cy /= members.length;
         for (const i of members) {
+          if (pinnedNodes.has(i)) continue;
           force[i][0] += (cx - positions[i][0]) * GROUP_K;
           force[i][1] += (cy - positions[i][1]) * GROUP_K;
         }
       }
-
-      // gentle centering toward world origin
       for (let i = 0; i < N; i++) {
+        if (pinnedNodes.has(i)) continue;
         force[i][0] -= positions[i][0] * CENTER_K;
         force[i][1] -= positions[i][1] * CENTER_K;
       }
 
-      // integrate — only freeze the node actively being dragged
+      // integrate
       for (let i = 0; i < N; i++) {
         if (i === dragNodeIdx) { vel[i][0] = vel[i][1] = 0; continue; }
+        if (pinnedNodes.has(i)) {
+          // locked: only nudge by repulsion so overlapping nodes push apart
+          positions[i][0] += repForce[i][0] * 0.25;
+          positions[i][1] += repForce[i][1] * 0.25;
+          vel[i][0] = vel[i][1] = 0;
+          continue;
+        }
         vel[i][0] = (vel[i][0] + force[i][0]) * DAMP;
         vel[i][1] = (vel[i][1] + force[i][1]) * DAMP;
         positions[i][0] += vel[i][0];
@@ -443,7 +455,8 @@
 
       if (wasDragNode && idx >= 0) {
         if (moved >= 6) {
-          // real drag — kill velocity so node settles where it was dropped
+          // real drag — lock node in place; repulsion still keeps it from overlapping
+          pinnedNodes.add(idx);
           vel[idx][0] = vel[idx][1] = 0;
         } else {
           // treated as a click
