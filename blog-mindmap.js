@@ -139,8 +139,6 @@
     });
     // per-node velocities (frame-based, no dt needed)
     const vel = nodes.map(() => [0, 0]);
-    // nodes the user has manually repositioned — exempt from cohesion & centering
-    const pinnedNodes = new Set();
 
     // ── view state ────────────────────────────────────────────────────────
     let panX = 0, panY = 0;          // world-origin offset from canvas center (px)
@@ -201,9 +199,9 @@
     //   gentle centering            →  prevents the graph drifting off-screen
     const REST_LEN = 28;     // px — edge rest length
     const SPRING_K = 0.012;  // spring stiffness
-    const REP      = 320;    // repulsion strength (lower = clusters can sit closer)
-    const GROUP_K  = 0.018;  // cohesion pull toward group centroid (higher = tighter clusters)
-    const CENTER_K = 0.002;  // centering pull (higher = whole graph stays compact)
+    const REP      = 320;    // repulsion (keeps nodes from overlapping)
+    const GROUP_K  = 0.003;  // very gentle cohesion — clusters form but don't fight drags
+    const CENTER_K = 0.0003; // very gentle centering — graph stays together but nodes stay put
     const DAMP     = 0.82;
 
     // pre-build group membership lists (stable across frames)
@@ -241,32 +239,27 @@
         }
       }
 
-      // group cohesion — pull each non-pinned node toward its group's centroid
+      // group cohesion — gently pull each node toward its group's centroid
       for (const members of Object.values(groupMembers)) {
         if (members.length < 2) continue;
         let cx = 0, cy = 0;
         for (const i of members) { cx += positions[i][0]; cy += positions[i][1]; }
         cx /= members.length; cy /= members.length;
         for (const i of members) {
-          if (pinnedNodes.has(i)) continue;
           force[i][0] += (cx - positions[i][0]) * GROUP_K;
           force[i][1] += (cy - positions[i][1]) * GROUP_K;
         }
       }
 
-      // gentle centering toward world origin (skip pinned)
+      // gentle centering toward world origin
       for (let i = 0; i < N; i++) {
-        if (pinnedNodes.has(i)) continue;
         force[i][0] -= positions[i][0] * CENTER_K;
         force[i][1] -= positions[i][1] * CENTER_K;
       }
 
-      // integrate — pinned and currently-dragged nodes are fully frozen
+      // integrate — only freeze the node actively being dragged
       for (let i = 0; i < N; i++) {
-        if (i === dragNodeIdx || pinnedNodes.has(i)) {
-          vel[i][0] = vel[i][1] = 0;
-          continue;
-        }
+        if (i === dragNodeIdx) { vel[i][0] = vel[i][1] = 0; continue; }
         vel[i][0] = (vel[i][0] + force[i][0]) * DAMP;
         vel[i][1] = (vel[i][1] + force[i][1]) * DAMP;
         positions[i][0] += vel[i][0];
@@ -450,8 +443,7 @@
 
       if (wasDragNode && idx >= 0) {
         if (moved >= 6) {
-          // real drag — pin the node so it stays put
-          pinnedNodes.add(idx);
+          // real drag — kill velocity so node settles where it was dropped
           vel[idx][0] = vel[idx][1] = 0;
         } else {
           // treated as a click
