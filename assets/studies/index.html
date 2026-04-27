@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/png" href="assets/favicon.png" />
+  <title>anubis3100</title>
+  <link rel="stylesheet" href="style.css?v=34" />
+  <script>
+    // set dark mode before first paint to avoid flash
+    if (localStorage.getItem('theme') !== 'light') {
+      document.documentElement.classList.add('dark-preload');
+    }
+  </script>
+  <style>
+    html.dark-preload { background: #141311; }
+    html.dark-preload body { background: #141311; color: #efece4; }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a class="nav-logo" href="#digital">anubis3100</a>
+    <div class="nav-right">
+      <ul class="nav-links">
+        <li><a href="#digital" data-route="digital">Digital</a></li>
+        <li class="nav-dropdown">
+          <a id="painting-toggle">Painting</a>
+          <div class="dropdown-menu" id="painting-menu">
+            <a href="#physical" data-route="physical">Physical</a>
+            <a href="#studies"  data-route="studies">Studies</a>
+          </div>
+        </li>
+        <li><a href="#video" data-route="video">Video</a></li>
+        <li><a href="#cv"    data-route="cv">CV</a></li>
+        <li><a href="https://twitter.com/anubis_3100" target="_blank">↗</a></li>
+      </ul>
+      <button class="theme-toggle" id="theme-toggle" aria-label="Toggle dark mode">◑</button>
+    </div>
+    <button class="nav-burger" id="nav-burger" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+
+  <div id="nav-overlay" aria-hidden="true"></div>
+
+  <main id="app"></main>
+
+  <footer>
+    <span>&copy; anubis3100</span>
+    <a href="https://twitter.com/anubis_3100" target="_blank">Twitter ↗</a>
+  </footer>
+
+  <div id="lightbox" role="dialog" aria-modal="true">
+    <button id="lightbox-close" aria-label="Close">close ✕</button>
+    <img id="lightbox-img" alt="" />
+    <p id="lightbox-caption"></p>
+  </div>
+
+  <script src="app.js?v=34"></script>
+</body>
+</html>
