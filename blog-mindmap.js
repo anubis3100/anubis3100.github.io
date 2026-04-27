@@ -108,27 +108,30 @@
         sectionIndex: a.sectionIndex,
       })),
     ];
-    const N = nodes.length;
     const postOff = 0;
     const artOff  = posts.length;
+
+    // hub nodes — one per cluster, bigger, always-labelled, navigate to section on click
+    const HUB_DEFS = [
+      { kind: 'hub', section: 'post',     title: 'Journal',  route: 'blog'     },
+      { kind: 'hub', section: 'digital',  title: 'Digital',  route: 'digital'  },
+      { kind: 'hub', section: 'physical', title: 'Painting', route: 'physical' },
+      { kind: 'hub', section: 'studies',  title: 'Studies',  route: 'studies'  },
+    ];
+    const hubIndices = {};
+    HUB_DEFS.forEach(h => { hubIndices[h.section] = nodes.length; nodes.push(h); });
+
+    const N = nodes.length;
 
     const rawEdges = buildEdges(posts, artworks);
     const edges = rawEdges.map(e => ({ from: postOff + e.p, to: artOff + e.a }));
 
-    // intra-cluster edges — connect every node in a cluster to every other in the same cluster
-    const clusterMap = new Map(); // key → [nodeIndices]
+    // star edges — every node connects to its cluster hub
     nodes.forEach((n, i) => {
+      if (n.kind === 'hub') return;
       const key = n.kind === 'post' ? 'post' : n.section;
-      if (!clusterMap.has(key)) clusterMap.set(key, []);
-      clusterMap.get(key).push(i);
+      if (hubIndices[key] != null) edges.push({ from: i, to: hubIndices[key] });
     });
-    for (const members of clusterMap.values()) {
-      for (let a = 0; a < members.length; a++) {
-        for (let b = a + 1; b < members.length; b++) {
-          edges.push({ from: members[a], to: members[b] });
-        }
-      }
-    }
 
     const adj = new Map();
     for (let i = 0; i < N; i++) adj.set(i, new Set());
@@ -147,6 +150,7 @@
     const positions = nodes.map((n) => {
       const key = n.kind === 'post' ? 'post' : n.section;
       const c   = GROUP_CENTERS[key] || [0, 0];
+      if (n.kind === 'hub') return [c[0], c[1]]; // hub spawns exactly at group center
       const idx = groupCount[key] = (groupCount[key] || 0) + 1;
       // tight spiral within the group zone
       const angle = idx * 2.399963;
@@ -337,19 +341,21 @@
         const isDrag  = i === dragNodeIdx;
         const dim = highlighted && !highlighted.has(i);
 
-        const baseR  = n.kind === 'post' ? 7 : 4.5;
+        const isHub  = n.kind === 'hub';
+        const baseR  = isHub ? 13 : n.kind === 'post' ? 7 : 4.5;
         const scaled = baseR * Math.max(0.6, Math.min(1.8, zoom));
         const radius = scaled * ((isHover || isDrag) ? 1.55 : 1);
         const alpha  = dim ? 0.18 : 0.88;
 
-        // glow ring on hover / drag
-        if (isHover || isDrag) {
-          const glow = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, radius * 5);
-          glow.addColorStop(0, applyAlpha(colorFor(n), 0.30));
+        // glow ring on hover / drag (and always on hubs)
+        if (isHover || isDrag || isHub) {
+          const glowR = isHub ? radius * 3 : radius * 5;
+          const glow = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, glowR);
+          glow.addColorStop(0, applyAlpha(colorFor(n), isHub ? 0.22 : 0.30));
           glow.addColorStop(1, applyAlpha(colorFor(n), 0));
           ctx.fillStyle = glow;
           ctx.beginPath();
-          ctx.arc(p.x, p.y, radius * 5, 0, Math.PI * 2);
+          ctx.arc(p.x, p.y, glowR, 0, Math.PI * 2);
           ctx.fill();
         }
 
@@ -359,32 +365,46 @@
         ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);
         ctx.fill();
 
-        // subtle ring on post nodes
-        if (n.kind === 'post') {
+        // ring — double ring for hubs, subtle ring for posts
+        if (isHub) {
+          ctx.lineWidth   = 2;
+          ctx.strokeStyle = applyAlpha(colorFor(n), dim ? 0.12 : 0.55);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, radius + 4, 0, Math.PI * 2);
+          ctx.lineWidth   = 1;
+          ctx.strokeStyle = applyAlpha(colorFor(n), dim ? 0.06 : 0.25);
+          ctx.stroke();
+        } else if (n.kind === 'post') {
           ctx.lineWidth   = 1.5;
           ctx.strokeStyle = applyAlpha(getBg(), dim ? 0.04 : 0.45);
           ctx.stroke();
         }
 
         // label visibility rules:
-        //   zoom < 0.7  → only on hover/drag (too zoomed out to read)
+        //   hubs        → always visible
+        //   zoom < 0.7  → only on hover/drag
         //   0.7–1.8     → posts always, art only on hover/drag
         //   zoom > 1.8  → all nodes always
-        const showLabel = (isHover || isDrag)
+        const showLabel = isHub || (isHover || isDrag)
           || (zoom >= 0.7 && n.kind === 'post')
           || (zoom >= 1.8);
         if (showLabel) {
-          const labelAlpha = dim ? 0.12 : (n.kind === 'post' ? 0.72 : 0.95);
-          const fSize = Math.max(9, Math.min(12, 10.5 * Math.sqrt(zoom)));
-          ctx.font = `${fSize}px 'JetBrains Mono', ui-monospace, monospace`;
+          const labelAlpha = dim ? 0.12 : (isHub ? 1.0 : n.kind === 'post' ? 0.72 : 0.95);
+          const fSize = isHub
+            ? Math.max(11, Math.min(15, 12 * Math.sqrt(zoom)))
+            : Math.max(9,  Math.min(12, 10.5 * Math.sqrt(zoom)));
+          ctx.font = isHub
+            ? `600 ${fSize}px 'JetBrains Mono', ui-monospace, monospace`
+            : `${fSize}px 'JetBrains Mono', ui-monospace, monospace`;
           ctx.textAlign    = 'center';
           ctx.textBaseline = 'top';
-          const label = truncate(n.title, n.kind === 'post' ? 24 : 28);
+          const label = truncate(n.title, isHub ? 18 : n.kind === 'post' ? 24 : 28);
           const tw = ctx.measureText(label).width;
-          ctx.fillStyle = applyAlpha(getBg(), Math.min(0.72, labelAlpha * 1.1));
-          ctx.fillRect(p.x - tw / 2 - 3, p.y + radius + 4, tw + 6, fSize + 3);
-          ctx.fillStyle = applyAlpha(ink, labelAlpha);
-          ctx.fillText(label, p.x, p.y + radius + 5);
+          ctx.fillStyle = applyAlpha(getBg(), Math.min(0.82, labelAlpha * 1.1));
+          ctx.fillRect(p.x - tw / 2 - 4, p.y + radius + 5, tw + 8, fSize + 4);
+          ctx.fillStyle = applyAlpha(isHub ? colorFor(n) : ink, labelAlpha);
+          ctx.fillText(label, p.x, p.y + radius + 6);
         }
       }
     }
@@ -394,7 +414,8 @@
       let best = -1, bestD2 = Infinity;
       for (let i = 0; i < N; i++) {
         const p    = toScreen(positions[i][0], positions[i][1]);
-        const base = (nodes[i].kind === 'post' ? 7 : 4.5) * Math.max(0.6, Math.min(1.8, zoom));
+        const bR   = nodes[i].kind === 'hub' ? 13 : nodes[i].kind === 'post' ? 7 : 4.5;
+        const base = bR * Math.max(0.6, Math.min(1.8, zoom));
         const hit  = base + 7;
         const dx   = p.x - sx, dy = p.y - sy;
         const d2   = dx * dx + dy * dy;
@@ -478,15 +499,18 @@
           vel[idx][0] = vel[idx][1] = 0;
         } else {
           // treated as a click
+          const n = nodes[idx];
+          // hub nodes navigate immediately on single click
+          if (n.kind === 'hub') { handleNodeClick(n); return; }
           const now = Date.now();
           if (idx === lastClickIdx && now - lastClickTime < 380) {
-            handleNodeClick(nodes[idx]);
+            handleNodeClick(n);
             lastClickIdx = -1; lastClickTime = 0;
             return;
           }
           lastClickIdx = idx; lastClickTime = now;
           const rect = canvas.getBoundingClientRect();
-          togglePreview(nodes[idx], e.clientX - rect.left, e.clientY - rect.top);
+          togglePreview(n, e.clientX - rect.left, e.clientY - rect.top);
         }
       }
     });
@@ -546,7 +570,10 @@
 
     // ── navigation ────────────────────────────────────────────────────────
     function handleNodeClick(n) {
-      if (n.kind === 'post') {
+      if (n.kind === 'hub') {
+        if (typeof window.goTo === 'function') window.goTo(n.route);
+        else window.location.hash = n.route;
+      } else if (n.kind === 'post') {
         window.__blogReturnToMap = true;
         if (typeof window.goTo === 'function') window.goTo('blog/' + n.slug);
         else window.location.hash = 'blog/' + n.slug;
