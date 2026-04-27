@@ -127,6 +127,7 @@
       ...artworks.map((a, i) => ({
         kind: 'art', idx: i, section: a.section, slug: a.slug,
         src: a.src, title: a.title, meta: a.meta,
+        sectionIndex: a.sectionIndex,
       })),
     ];
     const N = nodes.length;
@@ -193,7 +194,7 @@
       // forward was: rotateY(ay) then rotateX(ax). inverse: rotateX(-ax) then rotateY(-ay)
       const cx = Math.cos(-rotX), sx_ = Math.sin(-rotX);
       const y0 = y * cx;
-      const z0 = -y * sx_;
+      const z0 = y * sx_;   // correct sign: undo X-rotation of (x,y,0)
       const cy = Math.cos(-rotY), sy_ = Math.sin(-rotY);
       const x1 = x * cy + z0 * sy_;
       const z1 = -x * sy_ + z0 * cy;
@@ -549,7 +550,11 @@
         if (typeof window.goTo === 'function') window.goTo('blog/' + n.slug);
         else window.location.hash = 'blog/' + n.slug;
       } else {
-        if (typeof window.openLightbox === 'function') window.openLightbox(n.src, n.title);
+        // navigate to the gallery section that displays this artwork
+        const section = n.section; // 'digital' | 'physical' | 'studies'
+        window.__introTarget = { route: section, index: n.sectionIndex || 0 };
+        if (typeof window.goTo === 'function') window.goTo(section);
+        else window.location.hash = section;
       }
     }
 
@@ -587,12 +592,18 @@
 
       const wrap = root.querySelector('.mindmap-canvas-wrap');
       const cw = wrap.clientWidth, ch = wrap.clientHeight;
-      const PW = 280, PH = n.kind === 'art' ? 280 : 180;
+      const PW = 290;
+      const PH = n.kind === 'art' ? 370 : 230; // generous estimate keeps card fully inside
+      const pad = 12;
       let x = px + 22, y = py + 22;
-      if (x + PW > cw - 12) x = px - PW - 22;
-      if (x < 12) x = 12;
-      if (y + PH > ch - 12) y = ch - PH - 12;
-      if (y < 12) y = 12;
+      // prefer right of cursor; flip left if it would overflow
+      if (x + PW > cw - pad) x = px - PW - 22;
+      // hard-clamp so card always stays inside canvas horizontally
+      x = Math.max(pad, Math.min(cw - PW - pad, x));
+      // prefer below cursor; flip above if it would overflow bottom
+      if (y + PH > ch - pad) y = py - PH - 22;
+      // hard-clamp vertically
+      y = Math.max(pad, Math.min(ch - PH - pad, y));
       preview.style.left = x + 'px';
       preview.style.top  = y + 'px';
 

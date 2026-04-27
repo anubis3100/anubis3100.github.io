@@ -1387,7 +1387,7 @@ footer a:hover { color: var(--ink); }
   --mm-post:     #d94a3a;
   --mm-digital:  #1d8a7a;
   --mm-physical: #c98b6b;
-  --mm-studies:  #8a7860;
+  --mm-studies:  #7888c0;
 }
 
 .mindmap-empty {
@@ -1426,7 +1426,7 @@ footer a:hover { color: var(--ink); }
 .mindmap-legend .lg.post     { background: #d94a3a; box-shadow: 0 0 8px #d94a3a; }
 .mindmap-legend .lg.digital  { background: #1d8a7a; box-shadow: 0 0 8px #1d8a7a; }
 .mindmap-legend .lg.physical { background: #c98b6b; box-shadow: 0 0 8px #c98b6b; }
-.mindmap-legend .lg.studies  { background: #8a7860; box-shadow: 0 0 8px #8a7860; }
+.mindmap-legend .lg.studies  { background: #7888c0; box-shadow: 0 0 8px #7888c0; }
 
 .mindmap-hint {
   position: absolute;

@@ -510,16 +510,16 @@ function pageBlogList() {
       <h1 class="blog-h1">Notes &amp; thoughts</h1>
       <p class="blog-sub">Written between studio sessions.</p>
       <div class="blog-view-toggle" role="tablist">
-        <button class="bvt-btn active" data-view="list" role="tab">List</button>
-        <button class="bvt-btn" data-view="map" role="tab">Map</button>
+        <button class="bvt-btn" data-view="list" role="tab">List</button>
+        <button class="bvt-btn active" data-view="map" role="tab">Map</button>
       </div>
     </div>
-    <div class="blog-list-view" id="blog-list-view">
+    <div class="blog-list-view" id="blog-list-view" hidden>
       <div class="blog-list" id="blog-list">
         <p class="blog-loading">loading…</p>
       </div>
     </div>
-    <div class="blog-map-view" id="blog-map-view" hidden>
+    <div class="blog-map-view" id="blog-map-view">
       <div class="blog-mindmap-host"></div>
     </div>
   `;
@@ -543,10 +543,13 @@ function pageBlogList() {
     b.addEventListener('click', () => switchView(b.dataset.view));
   });
 
-  // if user navigated here from the mindmap, restore map view
-  if (window.__blogReturnToMap) {
-    window.__blogReturnToMap = false;
-    requestAnimationFrame(() => switchView('map'));
+  // Map is the default. Only switch to list if user came back from a list-opened post.
+  if (window.__blogReturnToMap === false) {
+    window.__blogReturnToMap = undefined;
+    requestAnimationFrame(() => switchView('list'));
+  } else {
+    // Build map immediately (it's the default view)
+    buildMap();
   }
 
   function buildMap() {
@@ -620,6 +623,7 @@ function getAllArtworks() {
       all.push({
         section, file, slug, title, meta,
         src: prefix + file + '?v=4',
+        sectionIndex: i,   // index within this section's gallery
       });
     });
   };
