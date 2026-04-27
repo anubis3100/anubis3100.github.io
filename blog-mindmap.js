@@ -115,6 +115,21 @@
     const rawEdges = buildEdges(posts, artworks);
     const edges = rawEdges.map(e => ({ from: postOff + e.p, to: artOff + e.a }));
 
+    // intra-cluster edges — connect every node in a cluster to every other in the same cluster
+    const clusterMap = new Map(); // key → [nodeIndices]
+    nodes.forEach((n, i) => {
+      const key = n.kind === 'post' ? 'post' : n.section;
+      if (!clusterMap.has(key)) clusterMap.set(key, []);
+      clusterMap.get(key).push(i);
+    });
+    for (const members of clusterMap.values()) {
+      for (let a = 0; a < members.length; a++) {
+        for (let b = a + 1; b < members.length; b++) {
+          edges.push({ from: members[a], to: members[b] });
+        }
+      }
+    }
+
     const adj = new Map();
     for (let i = 0; i < N; i++) adj.set(i, new Set());
     edges.forEach(e => { adj.get(e.from).add(e.to); adj.get(e.to).add(e.from); });
@@ -243,16 +258,16 @@
         }
       }
 
-      // cohesion — unpinned: full GROUP_K; pinned: gentle GROUP_K_PIN (nudges back to native cluster)
+      // cohesion — unpinned nodes only (pinned nodes excluded so they stay where dropped)
       for (const members of Object.values(groupMembers)) {
         if (members.length < 2) continue;
         let cx = 0, cy = 0;
         for (const i of members) { cx += positions[i][0]; cy += positions[i][1]; }
         cx /= members.length; cy /= members.length;
         for (const i of members) {
-          const gk = pinnedNodes.has(i) ? GROUP_K_PIN : GROUP_K;
-          force[i][0] += (cx - positions[i][0]) * gk;
-          force[i][1] += (cy - positions[i][1]) * gk;
+          if (pinnedNodes.has(i)) continue;
+          force[i][0] += (cx - positions[i][0]) * GROUP_K;
+          force[i][1] += (cy - positions[i][1]) * GROUP_K;
         }
       }
       // centering — unpinned only
@@ -262,12 +277,22 @@
         force[i][1] -= positions[i][1] * CENTER_K;
       }
 
-      // integrate — dragged node fully frozen; pinned nodes float with stronger damping; free nodes normal
+      // integrate — dragged node fully frozen; pinned nodes decay fast then hard-stop; free nodes normal
       for (let i = 0; i < N; i++) {
         if (i === dragNodeIdx) { vel[i][0] = vel[i][1] = 0; continue; }
-        const damp = pinnedNodes.has(i) ? DAMP_PINNED : DAMP;
-        vel[i][0] = (vel[i][0] + force[i][0]) * damp;
-        vel[i][1] = (vel[i][1] + force[i][1]) * damp;
+        if (pinnedNodes.has(i)) {
+          vel[i][0] = (vel[i][0] + force[i][0]) * DAMP_PINNED;
+          vel[i][1] = (vel[i][1] + force[i][1]) * DAMP_PINNED;
+          // hard-stop once nearly stationary so repulsion can't keep them creeping
+          if (Math.abs(vel[i][0]) < 0.08 && Math.abs(vel[i][1]) < 0.08) {
+            vel[i][0] = vel[i][1] = 0;
+          }
+          positions[i][0] += vel[i][0];
+          positions[i][1] += vel[i][1];
+          continue;
+        }
+        vel[i][0] = (vel[i][0] + force[i][0]) * DAMP;
+        vel[i][1] = (vel[i][1] + force[i][1]) * DAMP;
         positions[i][0] += vel[i][0];
         positions[i][1] += vel[i][1];
       }
