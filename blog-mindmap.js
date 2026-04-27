@@ -261,9 +261,12 @@
         force[i][1] -= positions[i][1] * CENTER_K;
       }
 
-      // integrate
+      // integrate — pinned and currently-dragged nodes are fully frozen
       for (let i = 0; i < N; i++) {
-        if (i === dragNodeIdx) { vel[i][0] = vel[i][1] = 0; continue; }
+        if (i === dragNodeIdx || pinnedNodes.has(i)) {
+          vel[i][0] = vel[i][1] = 0;
+          continue;
+        }
         vel[i][0] = (vel[i][0] + force[i][0]) * DAMP;
         vel[i][1] = (vel[i][1] + force[i][1]) * DAMP;
         positions[i][0] += vel[i][0];
@@ -339,8 +342,14 @@
           ctx.stroke();
         }
 
-        // label — always on posts; on hover for art nodes
-        if (n.kind === 'post' || isHover || isDrag) {
+        // label visibility rules:
+        //   zoom < 0.7  → only on hover/drag (too zoomed out to read)
+        //   0.7–1.8     → posts always, art only on hover/drag
+        //   zoom > 1.8  → all nodes always
+        const showLabel = (isHover || isDrag)
+          || (zoom >= 0.7 && n.kind === 'post')
+          || (zoom >= 1.8);
+        if (showLabel) {
           const labelAlpha = dim ? 0.12 : (n.kind === 'post' ? 0.72 : 0.95);
           const fSize = Math.max(9, Math.min(12, 10.5 * Math.sqrt(zoom)));
           ctx.font = `${fSize}px 'JetBrains Mono', ui-monospace, monospace`;
