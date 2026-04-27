@@ -213,8 +213,7 @@
     });
 
     function step() {
-      const force    = nodes.map(() => [0, 0]); // full forces (unpinned nodes)
-      const repForce = nodes.map(() => [0, 0]); // repulsion only (pinned nodes)
+      const force = nodes.map(() => [0, 0]);
 
       // springs — unpinned nodes only (pinned nodes don't get pulled back)
       for (const e of edges) {
@@ -236,10 +235,8 @@
           const d  = Math.sqrt(d2);
           const f  = REP / d2;
           const ux = dx / d, uy = dy / d;
-          force[i][0]    += ux * f; force[i][1]    += uy * f;
-          force[j][0]    -= ux * f; force[j][1]    -= uy * f;
-          repForce[i][0] += ux * f; repForce[i][1] += uy * f;
-          repForce[j][0] -= ux * f; repForce[j][1] -= uy * f;
+          force[i][0] += ux * f; force[i][1] += uy * f;
+          force[j][0] -= ux * f; force[j][1] -= uy * f;
         }
       }
 
@@ -263,11 +260,9 @@
 
       // integrate
       for (let i = 0; i < N; i++) {
-        if (i === dragNodeIdx) { vel[i][0] = vel[i][1] = 0; continue; }
-        // pinned: only repulsion moves them (decays to zero once not overlapping anything)
-        const f = pinnedNodes.has(i) ? repForce[i] : force[i];
-        vel[i][0] = (vel[i][0] + f[0]) * DAMP;
-        vel[i][1] = (vel[i][1] + f[1]) * DAMP;
+        if (i === dragNodeIdx || pinnedNodes.has(i)) { vel[i][0] = vel[i][1] = 0; continue; }
+        vel[i][0] = (vel[i][0] + force[i][0]) * DAMP;
+        vel[i][1] = (vel[i][1] + force[i][1]) * DAMP;
         positions[i][0] += vel[i][0];
         positions[i][1] += vel[i][1];
       }
