@@ -578,7 +578,7 @@ function pageBlogList() {
       return;
     }
     list.innerHTML = [...posts].reverse().map((p, i) => {
-      const num = String(i + 1).padStart(2, '0');
+      const num = String(posts.length - i).padStart(2, '0');
       const previewSrc = p.body
         .replace(/^\s*#.*$/m, '')
         .split(/\r?\n\r?\n/)
