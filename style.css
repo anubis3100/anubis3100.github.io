@@ -1,6 +1,21 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Fraunces:ital,opsz,wght@1,144,300&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent; /* remove blue flash on iOS tap */
+}
+
+/* faster taps on iOS — removes the 300ms delay */
+a, button, [role="button"], [tabindex], label, select,
+.viewer-arrow, .thumb, .bvt-btn, .blog-row, .nav-burger,
+.theme-toggle, .mindmap-canvas, .mp-close {
+  touch-action: manipulation;
+}
+
+/* prevent iOS font size inflation in landscape */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 
 :root {
   --bg: #f5f3ee;
@@ -36,6 +51,8 @@ nav {
   background: color-mix(in oklab, var(--bg) 85%, transparent);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+  -webkit-transform: translateZ(0); /* promote to GPU layer — prevents iOS flicker */
+  transform: translateZ(0);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -178,7 +195,8 @@ nav {
 .viewer {
   position: relative;
   width: 100%;
-  min-height: calc(100vh - 70px);
+  min-height: calc(100vh - 70px);    /* fallback */
+  min-height: calc(100dvh - 70px);   /* iOS Safari: dynamic viewport excludes browser chrome */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -255,6 +273,11 @@ nav {
 .viewer-artwork {
   perspective: 1000px;
   transform-style: preserve-3d;
+}
+/* disable 3D tilt on touch devices — no mouse to drive it, causes rendering overhead */
+@media (hover: none) {
+  .viewer-artwork { perspective: none; transform-style: flat; }
+  .viewer-artwork img.is-tilting { transform: none; box-shadow: 0 2px 4px color-mix(in oklab, var(--ink) 8%, transparent), 0 30px 60px -20px color-mix(in oklab, var(--ink) 18%, transparent); }
 }
 
 /* wide 2:1 artworks — cap width so they don't overlap nav arrows */
@@ -576,8 +599,8 @@ nav {
 
 #lightbox-close {
   position: fixed;
-  top: 22px;
-  right: 40px;
+  top: max(22px, calc(env(safe-area-inset-top) + 12px));
+  right: max(40px, calc(env(safe-area-inset-right) + 20px));
   background: none;
   border: none;
   font-family: inherit;
@@ -589,6 +612,9 @@ nav {
   cursor: pointer;
   opacity: 0.5;
   transition: opacity 0.2s;
+  /* ensure minimum tap target on mobile */
+  min-width: 44px; min-height: 44px;
+  display: flex; align-items: center; justify-content: flex-end;
 }
 #lightbox-close:hover { opacity: 1; }
 
@@ -757,6 +783,7 @@ body:has(.blog-wrap) footer { display: none; }
     linear-gradient(to right, rgba(79, 195, 169, 0.04) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(79, 195, 169, 0.04) 1px, transparent 1px);
   background-size: 64px 64px;
+  -webkit-mask-image: radial-gradient(ellipse at center, black 30%, transparent 80%);
   mask-image: radial-gradient(ellipse at center, black 30%, transparent 80%);
 }
 
@@ -1214,8 +1241,18 @@ footer a:hover { color: var(--ink); }
   nav {
     padding: 16px 20px;
     padding-top: max(16px, calc(env(safe-area-inset-top) + 8px));
+    padding-left: max(20px, env(safe-area-inset-left));
+    padding-right: max(20px, env(safe-area-inset-right));
   }
-  .nav-burger { display: flex; }
+  .nav-burger {
+    display: flex;
+    min-width: 44px; min-height: 44px; /* iOS minimum tap target */
+    align-items: center; justify-content: center;
+  }
+  .theme-toggle {
+    min-width: 44px; min-height: 44px;
+    display: flex; align-items: center; justify-content: center;
+  }
   .nav-links {
     display: none;
     position: absolute;
@@ -1227,12 +1264,22 @@ footer a:hover { color: var(--ink); }
     gap: 0;
     padding: 0 20px;
     z-index: 201;
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
   }
   .nav-links.mobile-open { display: flex; }
   .nav-links > li {
-    padding: 14px 0;
+    padding: 0;
     border-bottom: 1px solid var(--faint);
     width: 100%;
+  }
+  .nav-links > li > a {
+    display: block;
+    padding: 16px 0;          /* 44px+ tap target height */
+    min-height: 44px;
+    line-height: 44px;
+    padding-top: 0; padding-bottom: 0;
+    display: flex; align-items: center;
   }
   .nav-links > li:last-child { border-bottom: none; }
   .nav-dropdown { position: static; }
@@ -1240,33 +1287,52 @@ footer a:hover { color: var(--ink); }
     position: static !important;
     display: flex !important;
     border: none;
-    padding: 10px 0 4px 16px;
-    gap: 12px;
+    padding: 4px 0 8px 16px;
+    gap: 0;
+    flex-direction: column;
+  }
+  .dropdown-menu a {
+    padding: 12px 0;
+    min-height: 44px;
+    display: flex; align-items: center;
   }
 
   .viewer {
     height: auto;
     min-height: calc(100vh - 70px);
+    min-height: calc(100dvh - 70px);
     padding: 30px 20px 120px;
+    padding-bottom: max(120px, calc(env(safe-area-inset-bottom) + 80px));
   }
   .viewer-artwork {
     flex-direction: column;
     align-items: flex-start;
     gap: 0;
   }
-  .viewer-artwork img { max-height: 58vh; }
+  .viewer-artwork img { max-height: 55dvh; max-height: 55vh; }
   .viewer-caption {
     margin-top: 20px;
     width: 100%;
     padding: 18px 0 0;
+    border-left: none; border-right: none; border-bottom: none;
+    box-shadow: none;
   }
-  .viewer-arrow { padding: 12px; }
-  .viewer-arrow.prev { left: 6px; }
-  .viewer-arrow.next { right: 6px; }
+  /* bigger tap areas for arrows on touch screens */
+  .viewer-arrow {
+    padding: 16px 12px;
+    min-width: 56px; min-height: 56px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+  }
+  .viewer-arrow.prev { left: 4px; }
+  .viewer-arrow.next { right: 4px; }
   .viewer-arrow .arrow-line { width: 40px; }
   .viewer-arrow:hover .arrow-line { width: 50px; }
   .viewer-arrow .arrow-label { display: none; }
-  .viewer-hud { left: 20px; bottom: 16px; }
+  .viewer-hud {
+    left: 20px; bottom: 16px;
+    bottom: max(16px, calc(env(safe-area-inset-bottom) + 8px));
+  }
   .viewer-progress { width: 120px; }
   .viewer-thumbs { display: none; }
   .viewer-section-label { top: 18px; left: 20px; }
@@ -1279,6 +1345,9 @@ footer a:hover { color: var(--ink); }
 
   footer {
     padding: 24px 20px;
+    padding-bottom: max(24px, calc(env(safe-area-inset-bottom) + 16px));
+    padding-left: max(20px, env(safe-area-inset-left));
+    padding-right: max(20px, env(safe-area-inset-right));
     flex-direction: column;
     gap: 8px;
     align-items: flex-start;
@@ -1330,7 +1399,8 @@ footer a:hover { color: var(--ink); }
 .mindmap-canvas-wrap {
   position: relative;
   width: 100%;
-  height: min(76vh, 720px);
+  height: min(76vh, 720px);           /* fallback */
+  height: min(76dvh, 720px);          /* iOS Safari dynamic viewport */
   background:
     radial-gradient(ellipse at 50% 40%, rgba(79,195,169,0.07), transparent 70%),
     linear-gradient(180deg, #0c0907 0%, #070504 100%);
@@ -1347,6 +1417,7 @@ footer a:hover { color: var(--ink); }
     linear-gradient(to right, rgba(79,195,169,0.05) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(79,195,169,0.05) 1px, transparent 1px);
   background-size: 32px 32px;
+  -webkit-mask-image: radial-gradient(ellipse at center, black 30%, transparent 85%);
   mask-image: radial-gradient(ellipse at center, black 30%, transparent 85%);
 }
 .mindmap-canvas-wrap::after {
@@ -1495,6 +1566,7 @@ footer a:hover { color: var(--ink); }
   transition: opacity 0.22s cubic-bezier(0.22,1,0.36,1),
               transform 0.22s cubic-bezier(0.22,1,0.36,1);
   cursor: pointer;
+  -webkit-user-select: none;
   user-select: none;
 }
 .mindmap-preview.is-in {
@@ -1615,9 +1687,31 @@ footer a:hover { color: var(--ink); }
 }
 
 @media (max-width: 768px) {
-  .mindmap-canvas-wrap { height: min(70vh, 560px); }
-  .mindmap-legend { font-size: 8px; gap: 10px; }
-  .mindmap-preview { width: 240px; }
+  .mindmap-canvas-wrap {
+    height: min(72vh, 580px);
+    height: min(72dvh, 580px);
+    /* prevent iOS rubber-band from bleeding into canvas */
+    overscroll-behavior: contain;
+  }
+  .mindmap-legend { font-size: 8px; gap: 10px; top: 10px; left: 10px; }
+  .mindmap-hint { font-size: 8px; right: 10px; bottom: 10px; }
+  /* preview cards: full width minus padding on small screens */
+  .mindmap-preview {
+    width: min(260px, calc(100vw - 32px));
+    max-height: 80dvh;
+    max-height: 80vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  /* bigger close button tap target */
+  .mp-close {
+    width: 32px; height: 32px;
+    font-size: 16px;
+  }
+  /* blog list rows: more breathing room for thumbs */
+  .blog-row { padding: 16px 14px; }
+  .blog-view-toggle { width: 100%; }
+  .bvt-btn { flex: 1; padding: 12px 0; }
 }
 
 /* reduced motion */

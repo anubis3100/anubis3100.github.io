@@ -82,7 +82,7 @@
           <span><i class="lg physical"></i>Physical</span>
           <span><i class="lg studies"></i>Study</span>
         </div>
-        <div class="mindmap-hint">drag to pan · drag node · scroll to zoom · dbl-click to open</div>
+        <div class="mindmap-hint" id="mm-hint"></div>
         <div class="mindmap-tip" hidden></div>
       </div>
     `;
@@ -91,6 +91,15 @@
     const tip    = root.querySelector('.mindmap-tip');
     const empty  = root.querySelector('.mindmap-empty');
     const ctx    = canvas.getContext('2d');
+
+    // set hint text based on input type
+    const isTouch = ('ontouchstart' in window || navigator.maxTouchPoints > 0);
+    const hintEl = root.querySelector('#mm-hint');
+    if (hintEl) {
+      hintEl.textContent = isTouch
+        ? 'drag to pan · drag node · pinch to zoom · double-tap to open'
+        : 'drag to pan · drag node · scroll to zoom · dbl-click to open';
+    }
 
     if (posts.length === 0) {
       empty.hidden = false;
@@ -676,7 +685,7 @@
         <div class="mp-corner mp-c-br"></div>
         <div class="mp-body">${inner}</div>
         <div class="mp-foot">
-          <span class="mp-foot-key">› DBL-CLICK TO OPEN</span>
+          <span class="mp-foot-key">${isTouch ? '› DOUBLE-TAP TO OPEN' : '› DBL-CLICK TO OPEN'}</span>
           <span class="mp-foot-pulse"></span>
         </div>
       `;
