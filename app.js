@@ -384,7 +384,36 @@ async function loadBlogPosts() {
     console.warn('[blog] No posts found. Serve via HTTP (not file://) for local dev.');
   }
 
-  // ── 3. load each post body ───────────────────────────────────────────────
+  // ── 3. sort by GitHub commit date so upload order is always correct ───────
+  // Fetches the latest commit for each file in parallel. Oldest commit date
+  // = Nº 01; most recent commit date = highest number, displayed at top.
+  const repo = detectGithubRepo();
+  if (repo && filenames.length > 1) {
+    try {
+      const dates = await Promise.all(filenames.map(async (filename) => {
+        try {
+          const url = `https://api.github.com/repos/${repo}/commits?path=blog/${encodeURIComponent(filename)}&per_page=1&sha=${BLOG_GITHUB_BRANCH}`;
+          const res = await fetch(url);
+          if (res.ok) {
+            const commits = await res.json();
+            if (Array.isArray(commits) && commits.length > 0) {
+              return new Date(commits[0].commit.committer.date).getTime();
+            }
+          }
+        } catch (_) {}
+        return 0;
+      }));
+      // sort ascending: oldest first (→ Nº 01), newest last (→ highest Nº, top of list)
+      filenames = filenames
+        .map((f, i) => ({ f, d: dates[i] }))
+        .sort((a, b) => a.d - b.d)
+        .map(x => x.f);
+    } catch (e) {
+      console.warn('[blog] commit-date sort failed:', e.message);
+    }
+  }
+
+  // ── 4. load each post body ───────────────────────────────────────────────
   const posts = await Promise.all(filenames.map(async (filename) => {
     const slug  = filename.replace(/\.md$/i, '');
     const title = slug.replace(/[-_]/g, ' ');
