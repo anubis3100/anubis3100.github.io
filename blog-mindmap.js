@@ -197,11 +197,12 @@
     //   node-node repulsion         →  keeps nodes from overlapping
     //   group cohesion              →  pulls same-type nodes toward their centroid
     //   gentle centering            →  prevents the graph drifting off-screen
-    const REST_LEN = 28;      // px — edge rest length
-    const SPRING_K = 0.012;   // spring stiffness
-    const REP      = 320;     // repulsion (keeps nodes from overlapping)
-    const CENTER_K = 0.00005; // barely-there centering — only stops graph drifting off-screen
-    const DAMP     = 0.90;    // high damping — motion decays to zero in ~1s
+    const REST_LEN = 28;     // px — edge rest length
+    const SPRING_K = 0.012;  // spring stiffness
+    const REP      = 320;    // repulsion (keeps nodes from overlapping)
+    const GROUP_K  = 0.003;  // cohesion — keeps clusters together
+    const CENTER_K = 0.0003; // centering — keeps graph on screen
+    const DAMP     = 0.90;   // high damping — dropped nodes stop within ~1s
 
     // pre-build group membership lists (stable across frames)
     const groupMembers = { post: [], digital: [], physical: [], studies: [] };
@@ -238,7 +239,19 @@
         }
       }
 
-      // minimal centering — stops whole graph drifting off-screen
+      // group cohesion — pull each node toward its group centroid
+      for (const members of Object.values(groupMembers)) {
+        if (members.length < 2) continue;
+        let cx = 0, cy = 0;
+        for (const i of members) { cx += positions[i][0]; cy += positions[i][1]; }
+        cx /= members.length; cy /= members.length;
+        for (const i of members) {
+          force[i][0] += (cx - positions[i][0]) * GROUP_K;
+          force[i][1] += (cy - positions[i][1]) * GROUP_K;
+        }
+      }
+
+      // centering — keeps graph from drifting off-screen
       for (let i = 0; i < N; i++) {
         force[i][0] -= positions[i][0] * CENTER_K;
         force[i][1] -= positions[i][1] * CENTER_K;
