@@ -577,7 +577,7 @@ function pageBlogList() {
       list.innerHTML = `<p class="blog-empty">No posts yet. Drop a <code>.md</code> file in the <code>blog/</code> folder to get started.</p>`;
       return;
     }
-    list.innerHTML = posts.map((p, i) => {
+    list.innerHTML = [...posts].reverse().map((p, i) => {
       const num = String(i + 1).padStart(2, '0');
       const previewSrc = p.body
         .replace(/^\s*#.*$/m, '')
