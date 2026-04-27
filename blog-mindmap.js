@@ -84,18 +84,6 @@
         </div>
         <div class="mindmap-hint">drag to pan · drag node · scroll to zoom · dbl-click to open</div>
         <div class="mindmap-tip" hidden></div>
-        <div class="mindmap-preview" hidden>
-          <button class="mp-close" type="button" aria-label="Close preview">×</button>
-          <div class="mp-corner mp-c-tl"></div>
-          <div class="mp-corner mp-c-tr"></div>
-          <div class="mp-corner mp-c-bl"></div>
-          <div class="mp-corner mp-c-br"></div>
-          <div class="mp-body"></div>
-          <div class="mp-foot">
-            <span class="mp-foot-key">› DBL-CLICK TO OPEN</span>
-            <span class="mp-foot-pulse"></span>
-          </div>
-        </div>
       </div>
     `;
 
@@ -151,6 +139,8 @@
     });
     // per-node velocities (frame-based, no dt needed)
     const vel = nodes.map(() => [0, 0]);
+    // nodes the user has manually repositioned — exempt from cohesion & centering
+    const pinnedNodes = new Set();
 
     // ── view state ────────────────────────────────────────────────────────
     let panX = 0, panY = 0;          // world-origin offset from canvas center (px)
@@ -251,20 +241,22 @@
         }
       }
 
-      // group cohesion — pull each node toward its group's centroid
+      // group cohesion — pull each non-pinned node toward its group's centroid
       for (const members of Object.values(groupMembers)) {
         if (members.length < 2) continue;
         let cx = 0, cy = 0;
         for (const i of members) { cx += positions[i][0]; cy += positions[i][1]; }
         cx /= members.length; cy /= members.length;
         for (const i of members) {
+          if (pinnedNodes.has(i)) continue;
           force[i][0] += (cx - positions[i][0]) * GROUP_K;
           force[i][1] += (cy - positions[i][1]) * GROUP_K;
         }
       }
 
-      // gentle centering toward world origin
+      // gentle centering toward world origin (skip pinned)
       for (let i = 0; i < N; i++) {
+        if (pinnedNodes.has(i)) continue;
         force[i][0] -= positions[i][0] * CENTER_K;
         force[i][1] -= positions[i][1] * CENTER_K;
       }
@@ -447,18 +439,23 @@
       dragNodeIdx = -1;
       canvas.style.cursor = hoverIdx >= 0 ? 'pointer' : 'grab';
 
-      if (moved < 6 && wasDragNode && idx >= 0) {
-        const now = Date.now();
-        if (idx === lastClickIdx && now - lastClickTime < 380) {
-          handleNodeClick(nodes[idx]);
-          lastClickIdx = -1; lastClickTime = 0;
-          return;
+      if (wasDragNode && idx >= 0) {
+        if (moved >= 6) {
+          // real drag — pin the node so it stays put
+          pinnedNodes.add(idx);
+          vel[idx][0] = vel[idx][1] = 0;
+        } else {
+          // treated as a click
+          const now = Date.now();
+          if (idx === lastClickIdx && now - lastClickTime < 380) {
+            handleNodeClick(nodes[idx]);
+            lastClickIdx = -1; lastClickTime = 0;
+            return;
+          }
+          lastClickIdx = idx; lastClickTime = now;
+          const rect = canvas.getBoundingClientRect();
+          togglePreview(nodes[idx], e.clientX - rect.left, e.clientY - rect.top);
         }
-        lastClickIdx = idx; lastClickTime = now;
-        const rect = canvas.getBoundingClientRect();
-        showPreview(nodes[idx], e.clientX - rect.left, e.clientY - rect.top);
-      } else if (moved < 6 && !wasDragNode) {
-        hidePreview();
       }
     });
 
@@ -528,19 +525,19 @@
       }
     }
 
-    // ── preview card ──────────────────────────────────────────────────────
-    const preview     = root.querySelector('.mindmap-preview');
-    const previewBody = preview.querySelector('.mp-body');
-    preview.querySelector('.mp-close').addEventListener('click', (e) => {
-      e.stopPropagation(); hidePreview();
-    });
+    // ── multi-preview cards ───────────────────────────────────────────────
+    // Each node can have its own open card simultaneously.
+    // activePreviews: nodeIdx → { el, clickAt }
+    const activePreviews = new Map();
+    const wrap = root.querySelector('.mindmap-canvas-wrap');
 
-    function showPreview(n, px, py) {
-      const post = n.kind === 'post' ? posts[n.idx]     : null;
-      const art  = n.kind === 'art'  ? artworks[n.idx]  : null;
+    function buildPreviewEl(n, px, py) {
+      const post = n.kind === 'post' ? posts[n.idx]    : null;
+      const art  = n.kind === 'art'  ? artworks[n.idx] : null;
       const eyebrow = n.kind === 'post'
         ? '› JOURNAL ENTRY'
         : `› ARTWORK · ${(n.section || '').toUpperCase()}`;
+
       let inner = '';
       if (post) {
         const text = (post.body || '')
@@ -560,11 +557,23 @@
           <div class="mp-text mp-meta-line">${escapeHtml(art.meta || '')}</div>
         `;
       }
-      previewBody.innerHTML = inner;
-      preview.dataset.kind    = n.kind;
-      preview.dataset.nodeIdx = String(nodes.indexOf(n));
 
-      const wrap = root.querySelector('.mindmap-canvas-wrap');
+      const el = document.createElement('div');
+      el.className = 'mindmap-preview';
+      el.innerHTML = `
+        <button class="mp-close" type="button" aria-label="Close preview">×</button>
+        <div class="mp-corner mp-c-tl"></div>
+        <div class="mp-corner mp-c-tr"></div>
+        <div class="mp-corner mp-c-bl"></div>
+        <div class="mp-corner mp-c-br"></div>
+        <div class="mp-body">${inner}</div>
+        <div class="mp-foot">
+          <span class="mp-foot-key">› DBL-CLICK TO OPEN</span>
+          <span class="mp-foot-pulse"></span>
+        </div>
+      `;
+
+      // position
       const cw = wrap.clientWidth, ch = wrap.clientHeight;
       const PW = 290, PH = n.kind === 'art' ? 370 : 230, pad = 12;
       let x = px + 22, y = py + 22;
@@ -572,41 +581,60 @@
       x = Math.max(pad, Math.min(cw - PW - pad, x));
       if (y + PH > ch - pad) y = py - PH - 22;
       y = Math.max(pad, Math.min(ch - PH - pad, y));
-      preview.style.left = x + 'px';
-      preview.style.top  = y + 'px';
-      preview.hidden = false;
-      preview.classList.remove('is-in');
-      void preview.offsetWidth;
-      preview.classList.add('is-in');
+      el.style.left = x + 'px';
+      el.style.top  = y + 'px';
+
+      return el;
     }
 
+    function closePreview(nodeIdx) {
+      const entry = activePreviews.get(nodeIdx);
+      if (!entry) return;
+      const el = entry.el;
+      el.classList.remove('is-in');
+      el.classList.add('is-out');
+      setTimeout(() => el.remove(), 240);
+      activePreviews.delete(nodeIdx);
+    }
+
+    function togglePreview(n, px, py) {
+      const nodeIdx = nodes.indexOf(n);
+      // second click on same node → close its card
+      if (activePreviews.has(nodeIdx)) { closePreview(nodeIdx); return; }
+
+      const el = buildPreviewEl(n, px, py);
+      const entry = { el, clickAt: 0 };
+      activePreviews.set(nodeIdx, entry);
+      wrap.appendChild(el);
+      void el.offsetWidth;
+      el.classList.add('is-in');
+
+      // × button
+      el.querySelector('.mp-close').addEventListener('click', (e) => {
+        e.stopPropagation(); closePreview(nodeIdx);
+      });
+
+      // click / dbl-click on card
+      el.addEventListener('click', (ev) => {
+        if (ev.target.closest('.mp-close')) return;
+        // single click on artwork thumbnail → navigate
+        if (n.kind === 'art' && ev.target.closest('.mp-thumb')) {
+          closePreview(nodeIdx); handleNodeClick(n); return;
+        }
+        // double click elsewhere → navigate
+        const now = Date.now();
+        if (now - entry.clickAt < 400) {
+          closePreview(nodeIdx); handleNodeClick(n);
+        } else {
+          entry.clickAt = now;
+        }
+      });
+    }
+
+    // kept for cleanup use
     function hidePreview() {
-      if (preview.hidden) return;
-      preview.classList.remove('is-in');
-      preview.classList.add('is-out');
-      setTimeout(() => { preview.classList.remove('is-out'); preview.hidden = true; }, 240);
+      for (const nodeIdx of [...activePreviews.keys()]) closePreview(nodeIdx);
     }
-
-    // Manual click-timer: native dblclick won't fire when first click
-    // lands on canvas and second on the preview card (two different elements).
-    let previewClickAt = 0;
-    preview.addEventListener('click', (e) => {
-      if (e.target.closest('.mp-close')) return;
-      const idx = parseInt(preview.dataset.nodeIdx, 10);
-      if (isNaN(idx) || !nodes[idx]) return;
-      const n = nodes[idx];
-      // single click on artwork thumbnail → navigate immediately
-      if (n.kind === 'art' && e.target.closest('.mp-thumb')) {
-        hidePreview(); handleNodeClick(n); previewClickAt = 0; return;
-      }
-      // double click anywhere else on card
-      const now = Date.now();
-      if (now - previewClickAt < 400) {
-        hidePreview(); handleNodeClick(n); previewClickAt = 0;
-      } else {
-        previewClickAt = now;
-      }
-    });
 
     // ── main loop ─────────────────────────────────────────────────────────
     let raf = 0;
