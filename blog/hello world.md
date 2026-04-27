@@ -7,5 +7,7 @@ thats pretty much it!
 > mama mia here we go
 > untitled 01
 > river of peace
+> studies
+> digital
 
  
