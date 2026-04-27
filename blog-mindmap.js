@@ -131,11 +131,23 @@
     for (let i = 0; i < N; i++) adj.set(i, new Set());
     edges.forEach(e => { adj.get(e.from).add(e.to); adj.get(e.to).add(e.from); });
 
-    // initial positions: Fibonacci-angle spiral in world space (px)
-    const positions = nodes.map((_, i) => {
-      const angle = i * 2.399963; // golden angle ≈ 137.5°
-      const r = 35 * Math.sqrt(i + 1);
-      return [Math.cos(angle) * r, Math.sin(angle) * r];
+    // initial positions: each group starts near its own quadrant so the
+    // cohesion force has less work to do before the layout settles.
+    const GROUP_CENTERS = {
+      post:     [-120, -120],
+      digital:  [ 120, -120],
+      physical: [-120,  120],
+      studies:  [ 120,  120],
+    };
+    const groupCount = { post: 0, digital: 0, physical: 0, studies: 0 };
+    const positions = nodes.map((n) => {
+      const key = n.kind === 'post' ? 'post' : n.section;
+      const c   = GROUP_CENTERS[key] || [0, 0];
+      const idx = groupCount[key] = (groupCount[key] || 0) + 1;
+      // spiral within the group zone
+      const angle = idx * 2.399963;
+      const r     = 18 * Math.sqrt(idx);
+      return [c[0] + Math.cos(angle) * r, c[1] + Math.sin(angle) * r];
     });
     // per-node velocities (frame-based, no dt needed)
     const vel = nodes.map(() => [0, 0]);
@@ -195,12 +207,21 @@
     // ── force simulation (frame-based Euler, no dt) ───────────────────────
     //   spring attraction on edges  →  pulls connected nodes together
     //   node-node repulsion         →  keeps nodes from overlapping
+    //   group cohesion              →  pulls same-type nodes toward their centroid
     //   gentle centering            →  prevents the graph drifting off-screen
-    const REST_LEN = 80;     // px — edge rest length
-    const SPRING_K = 0.009;  // spring stiffness
-    const REP      = 1400;   // repulsion strength
-    const CENTER_K = 0.0004; // centering pull
-    const DAMP     = 0.86;   // velocity damping (lower = settles faster)
+    const REST_LEN = 42;     // px — edge rest length
+    const SPRING_K = 0.010;  // spring stiffness
+    const REP      = 650;    // repulsion strength
+    const GROUP_K  = 0.006;  // cohesion pull toward group centroid
+    const CENTER_K = 0.0004; // centering pull toward world origin
+    const DAMP     = 0.86;
+
+    // pre-build group membership lists (stable across frames)
+    const groupMembers = { post: [], digital: [], physical: [], studies: [] };
+    nodes.forEach((n, i) => {
+      const key = n.kind === 'post' ? 'post' : n.section;
+      if (groupMembers[key]) groupMembers[key].push(i);
+    });
 
     function step() {
       const force = nodes.map(() => [0, 0]);
@@ -230,7 +251,19 @@
         }
       }
 
-      // gentle centering
+      // group cohesion — pull each node toward its group's centroid
+      for (const members of Object.values(groupMembers)) {
+        if (members.length < 2) continue;
+        let cx = 0, cy = 0;
+        for (const i of members) { cx += positions[i][0]; cy += positions[i][1]; }
+        cx /= members.length; cy /= members.length;
+        for (const i of members) {
+          force[i][0] += (cx - positions[i][0]) * GROUP_K;
+          force[i][1] += (cy - positions[i][1]) * GROUP_K;
+        }
+      }
+
+      // gentle centering toward world origin
       for (let i = 0; i < N; i++) {
         force[i][0] -= positions[i][0] * CENTER_K;
         force[i][1] -= positions[i][1] * CENTER_K;
