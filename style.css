@@ -710,7 +710,7 @@ nav {
   --cy-line:      #2e1d14;
   --cy-text:      #efece4;
   --cy-mid:       #8a7060;
-  --cy-cyan:      #d94a3a;
+  --cy-cyan:      #4fc3a9;
   --cy-magenta:   #c98b6b;
   --cy-yellow:    #e8c870;
   --cy-amber:     #d97040;
@@ -742,8 +742,8 @@ body:has(.blog-wrap) footer { display: none; }
       to bottom,
       transparent 0,
       transparent 2px,
-      rgba(217, 74, 58, 0.018) 2px,
-      rgba(217, 74, 58, 0.018) 3px
+      rgba(79, 195, 169, 0.018) 2px,
+      rgba(79, 195, 169, 0.018) 3px
     ),
     radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.55) 100%);
 }
@@ -754,8 +754,8 @@ body:has(.blog-wrap) footer { display: none; }
   pointer-events: none;
   z-index: 1;
   background-image:
-    linear-gradient(to right, rgba(217, 74, 58, 0.04) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(217, 74, 58, 0.04) 1px, transparent 1px);
+    linear-gradient(to right, rgba(79, 195, 169, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(79, 195, 169, 0.04) 1px, transparent 1px);
   background-size: 64px 64px;
   mask-image: radial-gradient(ellipse at center, black 30%, transparent 80%);
 }
@@ -857,7 +857,7 @@ body:has(.blog-wrap) footer { display: none; }
 .blog-empty code {
   font-family: 'JetBrains Mono', ui-monospace, monospace;
   font-size: 11px;
-  background: rgba(217, 74, 58, 0.08);
+  background: rgba(79, 195, 169, 0.08);
   border: 1px solid var(--cy-line);
   color: var(--cy-cyan);
   padding: 2px 6px;
@@ -873,7 +873,7 @@ body:has(.blog-wrap) footer { display: none; }
   padding: 18px 18px 18px 18px;
   margin-bottom: 10px;
   border: 1px solid var(--cy-line);
-  background: linear-gradient(180deg, rgba(217, 74, 58, 0.03), rgba(201, 139, 107, 0.02));
+  background: linear-gradient(180deg, rgba(79, 195, 169, 0.03), rgba(201, 139, 107, 0.02));
   text-decoration: none;
   color: inherit;
   cursor: pointer;
@@ -899,13 +899,13 @@ body:has(.blog-wrap) footer { display: none; }
 .blog-row:hover {
   border-color: var(--cy-cyan);
   background:
-    linear-gradient(180deg, rgba(217, 74, 58, 0.09), rgba(201, 139, 107, 0.06)),
+    linear-gradient(180deg, rgba(79, 195, 169, 0.09), rgba(201, 139, 107, 0.06)),
     repeating-linear-gradient(
       to bottom, transparent 0, transparent 3px,
-      rgba(217,74,58,0.05) 3px, rgba(217,74,58,0.05) 4px
+      rgba(79,195,169,0.05) 3px, rgba(79,195,169,0.05) 4px
     );
   transform: translateX(2px);
-  box-shadow: 0 0 24px -8px var(--cy-cyan), inset 0 0 0 1px rgba(217,74,58,0.2);
+  box-shadow: 0 0 24px -8px var(--cy-cyan), inset 0 0 0 1px rgba(79,195,169,0.2);
 }
 .blog-row:hover::before, .blog-row:hover::after { opacity: 1; border-color: var(--cy-magenta); }
 .blog-row:hover .blog-row-arrow { color: var(--cy-cyan); transform: translateX(4px); }
@@ -979,7 +979,7 @@ body:has(.blog-wrap) footer { display: none; }
   margin-bottom: 36px;
   padding: 8px 14px;
   border: 1px solid var(--cy-line);
-  background: rgba(217, 74, 58, 0.04);
+  background: rgba(79, 195, 169, 0.04);
   transition: color 0.2s, border-color 0.2s, background 0.2s, transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .blog-back:hover {
@@ -1065,7 +1065,7 @@ body:has(.blog-wrap) footer { display: none; }
 .blog-post-body code {
   font-family: 'JetBrains Mono', ui-monospace, monospace;
   font-size: 0.92em;
-  background: rgba(217, 74, 58, 0.08);
+  background: rgba(79, 195, 169, 0.08);
   border: 1px solid var(--cy-line);
   color: var(--cy-cyan);
   padding: 1px 6px;
@@ -1292,7 +1292,7 @@ footer a:hover { color: var(--ink); }
   display: inline-flex;
   margin-top: 24px;
   border: 1px solid var(--cy-line);
-  background: rgba(217, 74, 58, 0.04);
+  background: rgba(79, 195, 169, 0.04);
   font-family: 'JetBrains Mono', ui-monospace, monospace;
 }
 .bvt-btn {
@@ -1332,7 +1332,7 @@ footer a:hover { color: var(--ink); }
   width: 100%;
   height: min(76vh, 720px);
   background:
-    radial-gradient(ellipse at 50% 40%, rgba(217,74,58,0.07), transparent 70%),
+    radial-gradient(ellipse at 50% 40%, rgba(79,195,169,0.07), transparent 70%),
     linear-gradient(180deg, #0c0907 0%, #070504 100%);
   border: 1px solid var(--cy-line);
   overflow: hidden;
@@ -1344,8 +1344,8 @@ footer a:hover { color: var(--ink); }
   position: absolute; inset: 0;
   pointer-events: none;
   background-image:
-    linear-gradient(to right, rgba(217,74,58,0.05) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(217,74,58,0.05) 1px, transparent 1px);
+    linear-gradient(to right, rgba(79,195,169,0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(79,195,169,0.05) 1px, transparent 1px);
   background-size: 32px 32px;
   mask-image: radial-gradient(ellipse at center, black 30%, transparent 85%);
 }
@@ -1355,7 +1355,7 @@ footer a:hover { color: var(--ink); }
   pointer-events: none;
   background:
     repeating-linear-gradient(to bottom, transparent 0, transparent 2px,
-      rgba(217,74,58,0.025) 2px, rgba(217,74,58,0.025) 3px);
+      rgba(79,195,169,0.025) 2px, rgba(79,195,169,0.025) 3px);
 }
 /* corner brackets */
 .mindmap-canvas-wrap > .mindmap-canvas + .mindmap-empty,
@@ -1378,12 +1378,12 @@ footer a:hover { color: var(--ink); }
   --bg:          #0c0907;
   --ink:         #efece4;
   --mid:         #8a7060;
-  --accent:      #d94a3a;
-  --faint:       #2e1d14;
+  --accent:      #4fc3a9;
+  --faint:       #1a2a26;
   /* mindmap node + edge color overrides */
   --mm-bg:       #0c0907;
   --mm-ink:      #efece4;
-  --mm-edge:     #d94a3a;
+  --mm-edge:     #4fc3a9;
   --mm-post:     #d94a3a;
   --mm-digital:  #1d8a7a;
   --mm-physical: #c98b6b;
@@ -1487,7 +1487,7 @@ footer a:hover { color: var(--ink); }
   z-index: 6;
   font-family: 'JetBrains Mono', ui-monospace, monospace;
   box-shadow:
-    0 0 0 1px rgba(217,74,58,0.15) inset,
+    0 0 0 1px rgba(79,195,169,0.15) inset,
     0 0 32px -6px var(--cy-cyan);
   transform-origin: top left;
   opacity: 0;
@@ -1582,7 +1582,7 @@ footer a:hover { color: var(--ink); }
   pointer-events: none;
   background:
     repeating-linear-gradient(to bottom, transparent 0, transparent 2px,
-      rgba(217,74,58,0.05) 2px, rgba(217,74,58,0.05) 3px);
+      rgba(79,195,169,0.05) 2px, rgba(79,195,169,0.05) 3px);
   mix-blend-mode: screen;
 }
 .mp-thumb img {

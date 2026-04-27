@@ -238,7 +238,7 @@
 
       // attraction along edges — short rest length pulls connected nodes close
       const SPRING_LEN = 0.18;
-      const SPRING_K   = 1.6;
+      const SPRING_K   = 0.7;
       for (const e of edges) {
         const a = positions[e.from], b = positions[e.to];
         const dx = b[0] - a[0], dy = b[1] - a[1], dz = b[2] - a[2];
@@ -274,8 +274,8 @@
         force[i][0] += ux * f; force[i][1] += uy * f; force[i][2] += uz * f;
       }
 
-      // integrate
-      const DAMP = 0.86;
+      // integrate — high damping = slow, smooth settling
+      const DAMP = 0.92;
       for (let i = 0; i < N; i++) {
         if (i === dragNodeIdx) {
           vel[i][0] = vel[i][1] = vel[i][2] = 0;
@@ -284,12 +284,12 @@
         vel[i][0] = (vel[i][0] + force[i][0] * dt) * DAMP;
         vel[i][1] = (vel[i][1] + force[i][1] * dt) * DAMP;
         vel[i][2] = (vel[i][2] + force[i][2] * dt) * DAMP;
-        // subtle per-node oscillation — gives each node its own breath
+        // subtle per-node oscillation — slow breath, not jitter
         const s = seeds[i];
-        const osc = 0.003;
-        positions[i][0] += vel[i][0] * dt + Math.sin(t * 0.8 + s[0]) * osc;
-        positions[i][1] += vel[i][1] * dt + Math.cos(t * 0.7 + s[1]) * osc;
-        positions[i][2] += vel[i][2] * dt + Math.sin(t * 0.9 + s[2]) * osc;
+        const osc = 0.0009;
+        positions[i][0] += vel[i][0] * dt + Math.sin(t * 0.35 + s[0]) * osc;
+        positions[i][1] += vel[i][1] * dt + Math.cos(t * 0.28 + s[1]) * osc;
+        positions[i][2] += vel[i][2] * dt + Math.sin(t * 0.42 + s[2]) * osc;
       }
     }
 
@@ -607,9 +607,37 @@
       preview.classList.add('is-out');
       setTimeout(() => { preview.classList.remove('is-out'); preview.hidden = true; }, 240);
     }
-    preview.addEventListener('dblclick', () => {
+    // Preview interaction:
+    //   • click the artwork thumbnail → open lightbox immediately (single click)
+    //   • double-click anywhere else on the card → open / navigate
+    //
+    // We use a manual click-timer instead of the native 'dblclick' event because
+    // the native event never fires when the first click landed on the canvas and
+    // the second on the preview card (two different elements).
+    let previewClickAt = 0;
+    preview.addEventListener('click', (e) => {
+      if (e.target.closest('.mp-close')) return; // let the × handle itself
       const idx = parseInt(preview.dataset.nodeIdx, 10);
-      if (!isNaN(idx) && nodes[idx]) handleNodeClick(nodes[idx]);
+      if (isNaN(idx) || !nodes[idx]) return;
+      const n = nodes[idx];
+
+      // single-click on the thumbnail image → open art immediately
+      if (n.kind === 'art' && e.target.closest('.mp-thumb')) {
+        hidePreview();
+        handleNodeClick(n);
+        previewClickAt = 0;
+        return;
+      }
+
+      // double-click anywhere on the card → open / navigate
+      const now = Date.now();
+      if (now - previewClickAt < 400) {
+        hidePreview();
+        handleNodeClick(n);
+        previewClickAt = 0;
+      } else {
+        previewClickAt = now;
+      }
     });
 
     function escapeHtml(s) {
