@@ -259,20 +259,20 @@
         if (!pinnedNodes.has(e.to))   { force[e.to  ][0] -= ux * f; force[e.to  ][1] -= uy * f; }
       }
 
-      // repulsion — settled nodes neither push nor get pushed (fully frozen)
+      // repulsion — settled nodes act as static obstacles: they push others but don't move themselves
       for (let i = 0; i < N; i++) {
-        if (settledNodes.has(i)) continue;
         for (let j = i + 1; j < N; j++) {
-          if (settledNodes.has(j)) continue;
+          const iSettled = settledNodes.has(i), jSettled = settledNodes.has(j);
+          if (iSettled && jSettled) continue; // both frozen — skip
           const a = positions[i], b = positions[j];
           const dx = a[0] - b[0], dy = a[1] - b[1];
           const d2  = dx * dx + dy * dy + 0.1;
           const d   = Math.sqrt(d2);
-          const rep = (nodes[i].kind === 'hub' || nodes[j].kind === 'hub') ? REP * 5 : REP;
+          const rep = (nodes[i].kind === 'hub' || nodes[j].kind === 'hub') ? REP * 2.5 : REP;
           const f   = rep / d2;
-          const ux = dx / d, uy = dy / d;
-          force[i][0] += ux * f; force[i][1] += uy * f;
-          force[j][0] -= ux * f; force[j][1] -= uy * f;
+          const ux  = dx / d, uy = dy / d;
+          if (!iSettled) { force[i][0] += ux * f; force[i][1] += uy * f; }
+          if (!jSettled) { force[j][0] -= ux * f; force[j][1] -= uy * f; }
         }
       }
 
@@ -545,6 +545,7 @@
         if (moved >= 6) {
           pinnedNodes.add(idx);
           vel[idx][0] = vel[idx][1] = 0;
+          if (nodes[idx].kind === 'hub') settledNodes.add(idx); // hubs freeze instantly on drop
         } else {
           // treated as a click
           const n = nodes[idx];
