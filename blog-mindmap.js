@@ -612,6 +612,46 @@
       void el.offsetWidth;
       el.classList.add('is-in');
 
+      // ── make card draggable ──────────────────────────────────────────────
+      let cardDragging = false;
+      let cardMoved    = false;
+      let cardDragStartX = 0, cardDragStartY = 0;
+      let cardStartLeft  = 0, cardStartTop   = 0;
+
+      el.style.cursor = 'grab';
+
+      el.addEventListener('pointerdown', (ev) => {
+        // don't intercept close button or artwork thumbnail
+        if (ev.target.closest('.mp-close') || ev.target.closest('.mp-thumb')) return;
+        cardDragging   = true;
+        cardMoved      = false;
+        cardDragStartX = ev.clientX;
+        cardDragStartY = ev.clientY;
+        cardStartLeft  = parseInt(el.style.left, 10) || 0;
+        cardStartTop   = parseInt(el.style.top,  10) || 0;
+        el.setPointerCapture(ev.pointerId);
+        el.style.cursor = 'grabbing';
+        ev.stopPropagation(); // prevent canvas pan from starting
+      });
+
+      el.addEventListener('pointermove', (ev) => {
+        if (!cardDragging) return;
+        const dx = ev.clientX - cardDragStartX;
+        const dy = ev.clientY - cardDragStartY;
+        if (Math.hypot(dx, dy) > 4) cardMoved = true;
+        el.style.left = (cardStartLeft + dx) + 'px';
+        el.style.top  = (cardStartTop  + dy) + 'px';
+        ev.stopPropagation();
+      });
+
+      el.addEventListener('pointerup', (ev) => {
+        if (!cardDragging) return;
+        cardDragging    = false;
+        el.style.cursor = 'grab';
+        ev.stopPropagation();
+      });
+      // ────────────────────────────────────────────────────────────────────
+
       // × button
       el.querySelector('.mp-close').addEventListener('click', (e) => {
         e.stopPropagation(); closePreview(nodeIdx);
@@ -620,6 +660,7 @@
       // click / dbl-click on card
       el.addEventListener('click', (ev) => {
         if (ev.target.closest('.mp-close')) return;
+        if (cardMoved) { cardMoved = false; return; } // suppress after drag
         // single click on artwork thumbnail → navigate
         if (n.kind === 'art' && ev.target.closest('.mp-thumb')) {
           closePreview(nodeIdx); handleNodeClick(n); return;
