@@ -134,19 +134,19 @@
     // initial positions: each group starts near its own quadrant so the
     // cohesion force has less work to do before the layout settles.
     const GROUP_CENTERS = {
-      post:     [-120, -120],
-      digital:  [ 120, -120],
-      physical: [-120,  120],
-      studies:  [ 120,  120],
+      post:     [-50, -50],
+      digital:  [ 50, -50],
+      physical: [-50,  50],
+      studies:  [ 50,  50],
     };
     const groupCount = { post: 0, digital: 0, physical: 0, studies: 0 };
     const positions = nodes.map((n) => {
       const key = n.kind === 'post' ? 'post' : n.section;
       const c   = GROUP_CENTERS[key] || [0, 0];
       const idx = groupCount[key] = (groupCount[key] || 0) + 1;
-      // spiral within the group zone
+      // tight spiral within the group zone
       const angle = idx * 2.399963;
-      const r     = 18 * Math.sqrt(idx);
+      const r     = 10 * Math.sqrt(idx);
       return [c[0] + Math.cos(angle) * r, c[1] + Math.sin(angle) * r];
     });
     // per-node velocities (frame-based, no dt needed)
@@ -209,12 +209,12 @@
     //   node-node repulsion         →  keeps nodes from overlapping
     //   group cohesion              →  pulls same-type nodes toward their centroid
     //   gentle centering            →  prevents the graph drifting off-screen
-    const REST_LEN = 42;     // px — edge rest length
-    const SPRING_K = 0.010;  // spring stiffness
-    const REP      = 650;    // repulsion strength
-    const GROUP_K  = 0.006;  // cohesion pull toward group centroid
-    const CENTER_K = 0.0004; // centering pull toward world origin
-    const DAMP     = 0.86;
+    const REST_LEN = 28;     // px — edge rest length
+    const SPRING_K = 0.012;  // spring stiffness
+    const REP      = 320;    // repulsion strength (lower = clusters can sit closer)
+    const GROUP_K  = 0.018;  // cohesion pull toward group centroid (higher = tighter clusters)
+    const CENTER_K = 0.002;  // centering pull (higher = whole graph stays compact)
+    const DAMP     = 0.82;
 
     // pre-build group membership lists (stable across frames)
     const groupMembers = { post: [], digital: [], physical: [], studies: [] };
