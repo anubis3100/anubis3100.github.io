@@ -133,6 +133,17 @@
       if (hubIndices[key] != null) edges.push({ from: i, to: hubIndices[key] });
     });
 
+    // hello world is the "root" — connect it to every hub
+    const helloIdx = nodes.findIndex(n =>
+      n.kind === 'post' &&
+      (n.slug || '').toLowerCase().replace(/[-_\s]/g, '') === 'helloworld'
+    );
+    if (helloIdx >= 0) {
+      Object.values(hubIndices).forEach(hi => {
+        if (hi !== hubIndices['post']) edges.push({ from: helloIdx, to: hi });
+      });
+    }
+
     const adj = new Map();
     for (let i = 0; i < N; i++) adj.set(i, new Set());
     edges.forEach(e => { adj.get(e.from).add(e.to); adj.get(e.to).add(e.from); });
@@ -159,7 +170,8 @@
     });
     // per-node velocities (frame-based, no dt needed)
     const vel = nodes.map(() => [0, 0]);
-    const pinnedNodes = new Set(); // manually dragged — exempt from GROUP_K/CENTER_K/springs
+    const pinnedNodes  = new Set(); // manually dragged
+    const settledNodes = new Set(); // pinned nodes that have fully stopped — fully frozen until re-dragged
 
     // ── view state ────────────────────────────────────────────────────────
     let panX = 0, panY = 0;          // world-origin offset from canvas center (px)
@@ -237,8 +249,10 @@
     function step() {
       const force = nodes.map(() => [0, 0]);
 
-      // springs — unpinned nodes only (pinned nodes don't get pulled back)
+      // springs — skip fully settled nodes; unpinned nodes pull normally;
+      // pinned-not-settled nodes receive spring toward their hub (return gravity)
       for (const e of edges) {
+        if (settledNodes.has(e.from) || settledNodes.has(e.to)) continue;
         const a = positions[e.from], b = positions[e.to];
         const dx = b[0] - a[0], dy = b[1] - a[1];
         const d  = Math.hypot(dx, dy) || 0.0001;
@@ -248,9 +262,11 @@
         if (!pinnedNodes.has(e.to))   { force[e.to  ][0] -= ux * f; force[e.to  ][1] -= uy * f; }
       }
 
-      // repulsion — all nodes, stored separately so pinned nodes can use it alone
+      // repulsion — settled nodes neither push nor get pushed (fully frozen)
       for (let i = 0; i < N; i++) {
+        if (settledNodes.has(i)) continue;
         for (let j = i + 1; j < N; j++) {
+          if (settledNodes.has(j)) continue;
           const a = positions[i], b = positions[j];
           const dx = a[0] - b[0], dy = a[1] - b[1];
           const d2 = dx * dx + dy * dy + 0.1;
@@ -262,7 +278,7 @@
         }
       }
 
-      // cohesion — unpinned nodes only (pinned nodes excluded so they stay where dropped)
+      // cohesion — unpinned nodes only
       for (const members of Object.values(groupMembers)) {
         if (members.length < 2) continue;
         let cx = 0, cy = 0;
@@ -281,15 +297,16 @@
         force[i][1] -= positions[i][1] * CENTER_K;
       }
 
-      // integrate — dragged node fully frozen; pinned nodes decay fast then hard-stop; free nodes normal
+      // integrate
       for (let i = 0; i < N; i++) {
-        if (i === dragNodeIdx) { vel[i][0] = vel[i][1] = 0; continue; }
+        if (i === dragNodeIdx)    { vel[i][0] = vel[i][1] = 0; continue; }
+        if (settledNodes.has(i))  { continue; } // fully frozen — no movement at all
         if (pinnedNodes.has(i)) {
           vel[i][0] = (vel[i][0] + force[i][0]) * DAMP_PINNED;
           vel[i][1] = (vel[i][1] + force[i][1]) * DAMP_PINNED;
-          // hard-stop once nearly stationary so repulsion can't keep them creeping
-          if (Math.abs(vel[i][0]) < 0.08 && Math.abs(vel[i][1]) < 0.08) {
+          if (Math.abs(vel[i][0]) < 0.12 && Math.abs(vel[i][1]) < 0.12) {
             vel[i][0] = vel[i][1] = 0;
+            settledNodes.add(i); // fully frozen from here
           }
           positions[i][0] += vel[i][0];
           positions[i][1] += vel[i][1];
@@ -299,6 +316,23 @@
         vel[i][1] = (vel[i][1] + force[i][1]) * DAMP;
         positions[i][0] += vel[i][0];
         positions[i][1] += vel[i][1];
+      }
+
+      // hub gravity — settled pinned nodes get a tiny direct position nudge toward their hub.
+      // bypasses velocity so there's no oscillation; gives the slow "return" feel.
+      for (const i of settledNodes) {
+        if (i === dragNodeIdx || nodes[i].kind === 'hub') continue;
+        const key = nodes[i].kind === 'post' ? 'post' : nodes[i].section;
+        const hi  = hubIndices[key];
+        if (hi == null) continue;
+        const dx   = positions[hi][0] - positions[i][0];
+        const dy   = positions[hi][1] - positions[i][1];
+        const dist = Math.hypot(dx, dy);
+        if (dist > REST_LEN + 8) {
+          const nudge = Math.min(0.006 * dist, 0.18); // proportional, capped — slow drift
+          positions[i][0] += (dx / dist) * nudge;
+          positions[i][1] += (dy / dist) * nudge;
+        }
       }
     }
 
@@ -434,6 +468,8 @@
       if (idx >= 0) {
         mode = 'dragNode';
         dragNodeIdx = idx;
+        pinnedNodes.delete(idx);  // unfreeze on re-drag
+        settledNodes.delete(idx);
       } else {
         mode = 'pan';
       }
@@ -453,9 +489,22 @@
       }
 
       if (mode === 'dragNode' && dragNodeIdx >= 0) {
-        // convert screen delta → world delta
-        positions[dragNodeIdx][0] += (e.clientX - lastPx) / zoom;
-        positions[dragNodeIdx][1] += (e.clientY - lastPy) / zoom;
+        const wdx = (e.clientX - lastPx) / zoom;
+        const wdy = (e.clientY - lastPy) / zoom;
+        positions[dragNodeIdx][0] += wdx;
+        positions[dragNodeIdx][1] += wdy;
+        // dragging a hub moves the whole cluster with it
+        if (nodes[dragNodeIdx].kind === 'hub') {
+          const hubSection = nodes[dragNodeIdx].section;
+          nodes.forEach((n, i) => {
+            if (i === dragNodeIdx) return;
+            const key = n.kind === 'post' ? 'post' : n.section;
+            if (key === hubSection) {
+              positions[i][0] += wdx;
+              positions[i][1] += wdy;
+            }
+          });
+        }
         lastPx = e.clientX; lastPy = e.clientY;
         return;
       }
