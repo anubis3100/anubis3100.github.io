@@ -121,11 +121,12 @@
 
     // initial positions: each group starts near its own quadrant so the
     // cohesion force has less work to do before the layout settles.
+    // posts in center, artwork clusters evenly surrounding them
     const GROUP_CENTERS = {
-      post:     [-50, -50],
-      digital:  [ 50, -50],
-      physical: [-50,  50],
-      studies:  [ 50,  50],
+      post:     [  0,    0],   // center
+      digital:  [  0, -130],  // top
+      physical: [-115,  75],  // bottom-left
+      studies:  [ 115,  75],  // bottom-right
     };
     const groupCount = { post: 0, digital: 0, physical: 0, studies: 0 };
     const positions = nodes.map((n) => {
