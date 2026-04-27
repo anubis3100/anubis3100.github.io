@@ -199,12 +199,14 @@
     //   node-node repulsion         →  keeps nodes from overlapping
     //   group cohesion              →  pulls same-type nodes toward their centroid
     //   gentle centering            →  prevents the graph drifting off-screen
-    const REST_LEN = 28;     // px — edge rest length
-    const SPRING_K = 0.012;  // spring stiffness
-    const REP      = 320;    // repulsion (keeps nodes from overlapping)
-    const GROUP_K  = 0.003;  // cohesion — keeps clusters together
-    const CENTER_K = 0.0003; // centering — keeps graph on screen
-    const DAMP     = 0.90;   // high damping — dropped nodes stop within ~1s
+    const REST_LEN    = 28;      // px — edge rest length
+    const SPRING_K    = 0.012;   // spring stiffness
+    const REP         = 200;     // repulsion (keeps nodes from overlapping)
+    const GROUP_K     = 0.003;   // cohesion — keeps clusters together
+    const GROUP_K_PIN = 0.0006;  // gentler cohesion for pinned nodes (nudges back to native cluster)
+    const CENTER_K    = 0.0003;  // centering — keeps graph on screen
+    const DAMP        = 0.90;    // damping for free nodes
+    const DAMP_PINNED = 0.80;    // stronger damping — pinned nodes float briefly then settle
 
     // pre-build group membership lists (stable across frames)
     const groupMembers = { post: [], digital: [], physical: [], studies: [] };
@@ -241,29 +243,31 @@
         }
       }
 
-      // cohesion + centering — unpinned nodes only
+      // cohesion — unpinned: full GROUP_K; pinned: gentle GROUP_K_PIN (nudges back to native cluster)
       for (const members of Object.values(groupMembers)) {
         if (members.length < 2) continue;
         let cx = 0, cy = 0;
         for (const i of members) { cx += positions[i][0]; cy += positions[i][1]; }
         cx /= members.length; cy /= members.length;
         for (const i of members) {
-          if (pinnedNodes.has(i)) continue;
-          force[i][0] += (cx - positions[i][0]) * GROUP_K;
-          force[i][1] += (cy - positions[i][1]) * GROUP_K;
+          const gk = pinnedNodes.has(i) ? GROUP_K_PIN : GROUP_K;
+          force[i][0] += (cx - positions[i][0]) * gk;
+          force[i][1] += (cy - positions[i][1]) * gk;
         }
       }
+      // centering — unpinned only
       for (let i = 0; i < N; i++) {
         if (pinnedNodes.has(i)) continue;
         force[i][0] -= positions[i][0] * CENTER_K;
         force[i][1] -= positions[i][1] * CENTER_K;
       }
 
-      // integrate
+      // integrate — dragged node fully frozen; pinned nodes float with stronger damping; free nodes normal
       for (let i = 0; i < N; i++) {
-        if (i === dragNodeIdx || pinnedNodes.has(i)) { vel[i][0] = vel[i][1] = 0; continue; }
-        vel[i][0] = (vel[i][0] + force[i][0]) * DAMP;
-        vel[i][1] = (vel[i][1] + force[i][1]) * DAMP;
+        if (i === dragNodeIdx) { vel[i][0] = vel[i][1] = 0; continue; }
+        const damp = pinnedNodes.has(i) ? DAMP_PINNED : DAMP;
+        vel[i][0] = (vel[i][0] + force[i][0]) * damp;
+        vel[i][1] = (vel[i][1] + force[i][1]) * damp;
         positions[i][0] += vel[i][0];
         positions[i][1] += vel[i][1];
       }
