@@ -300,6 +300,382 @@ function pageStudies() {
   );
 }
 
+// ── blog ───────────────────────────────────────────────────────────────────
+//
+// posts live in /blog/*.md
+// the post title is derived from the filename (no extension).
+//
+// to add a new post: just commit a new .md file to /blog/. that's it.
+//
+// how it works:
+//   1. the site auto-detects the GitHub repo from the URL (works on
+//      <user>.github.io and <user>.github.io/<repo>) and asks the GitHub API
+//      what's in /blog/. no manifest edits needed.
+//   2. as a fallback (local dev, or if the API rate-limits), the .github
+//      workflow at .github/workflows/blog-manifest.yml regenerates
+//      blog/manifest.json on every push, and the site reads from that.
+
+// leave BLOG_GITHUB_REPO blank to auto-detect from the page's hostname/path.
+// override it (e.g. "anubis3100/website") only if auto-detection fails.
+const BLOG_GITHUB_REPO   = "anubis3100/anubis3100.github.io";
+const BLOG_GITHUB_BRANCH = "main";
+
+function detectGithubRepo() {
+  if (BLOG_GITHUB_REPO) return BLOG_GITHUB_REPO;
+  const host = window.location.hostname;
+  // user/org page: <name>.github.io  -> repo is <name>.github.io itself
+  // project page:  <name>.github.io/<repo>/  -> repo is <repo>
+  const m = host.match(/^([^.]+)\.github\.io$/i);
+  if (!m) return "";
+  const user = m[1];
+  const path = window.location.pathname.split('/').filter(Boolean);
+  if (path.length === 0) return `${user}/${user}.github.io`;
+  return `${user}/${path[0]}`;
+}
+
+let blogPostsCache = null;
+
+async function loadBlogPosts() {
+  if (blogPostsCache) return blogPostsCache;
+
+  let filenames = [];
+
+  // ── 1. local manifest first (always works in local dev & production) ─────
+  try {
+    const res = await fetch('./blog/manifest.json', { cache: 'no-store' });
+    if (res.ok) {
+      const data = await res.json();
+      filenames = (data.posts || []).filter(
+        n => n.toLowerCase().endsWith('.md') && n.toLowerCase() !== 'readme.md'
+      );
+    } else {
+      console.warn('[blog] manifest.json →', res.status);
+    }
+  } catch (e) {
+    console.warn('[blog] manifest fetch failed:', e.message);
+  }
+
+  // ── 2. github api supplement (production only — adds newly-pushed files) ─
+  if (filenames.length === 0) {
+    const repo = detectGithubRepo();
+    if (repo) {
+      try {
+        const url = `https://api.github.com/repos/${repo}/contents/blog?ref=${BLOG_GITHUB_BRANCH}`;
+        const res = await fetch(url);
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data)) {
+            filenames = data
+              .filter(f => f.type === 'file'
+                        && f.name.toLowerCase().endsWith('.md')
+                        && f.name.toLowerCase() !== 'readme.md')
+              .map(f => f.name);
+          }
+        } else {
+          console.warn('[blog] GitHub API →', res.status);
+        }
+      } catch (e) {
+        console.warn('[blog] GitHub API failed:', e.message);
+      }
+    }
+  }
+
+  if (filenames.length === 0) {
+    console.warn('[blog] No posts found. Serve via HTTP (not file://) for local dev.');
+  }
+
+  // ── 3. load each post body ───────────────────────────────────────────────
+  const posts = await Promise.all(filenames.map(async (filename) => {
+    const slug  = filename.replace(/\.md$/i, '');
+    const title = slug.replace(/[-_]/g, ' ');
+    let body = '';
+    try {
+      const r = await fetch('./blog/' + encodeURIComponent(filename), { cache: 'no-store' });
+      if (r.ok) body = await r.text();
+      else console.warn('[blog] post fetch →', r.status, filename);
+    } catch (e) {
+      console.warn('[blog] post fetch failed:', e.message, filename);
+    }
+    return { filename, slug, title, body };
+  }));
+
+  blogPostsCache = posts;
+  return posts;
+}
+
+// minimal, safe-ish markdown renderer (no deps).
+// supports: #/##/### headers, **bold**, *italic*, `code`, [text](url),
+//           - list items, > blockquotes, --- hr, paragraphs, line breaks.
+function renderMarkdown(md) {
+  // strip a leading H1 — we render the title separately from the filename
+  md = md.replace(/^\s*#\s+.+\n+/, "");
+
+  const escape = s => s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+
+  const lines = md.split(/\r?\n/);
+  const out = [];
+  let i = 0;
+  let inList = false;
+  let inQuote = false;
+
+  const closeBlocks = () => {
+    if (inList)  { out.push("</ul>"); inList = false; }
+    if (inQuote) { out.push("</blockquote>"); inQuote = false; }
+  };
+
+  const inline = (s) => {
+    s = escape(s);
+    // links [text](url)
+    s = s.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, t, u) =>
+      `<a href="${u}" target="_blank" rel="noopener">${t}</a>`);
+    // bold then italic then code
+    s = s.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+    s = s.replace(/(^|[^*])\*([^*\n]+)\*/g, "$1<em>$2</em>");
+    s = s.replace(/`([^`]+)`/g, "<code>$1</code>");
+    return s;
+  };
+
+  while (i < lines.length) {
+    const line = lines[i];
+
+    if (/^\s*$/.test(line)) {
+      closeBlocks();
+      i++;
+      continue;
+    }
+
+    // hr
+    if (/^\s*---+\s*$/.test(line)) {
+      closeBlocks();
+      out.push("<hr />");
+      i++;
+      continue;
+    }
+
+    // headers
+    let m;
+    if ((m = /^(#{1,6})\s+(.+)$/.exec(line))) {
+      closeBlocks();
+      const level = m[1].length;
+      out.push(`<h${level}>${inline(m[2])}</h${level}>`);
+      i++;
+      continue;
+    }
+
+    // blockquote
+    if (/^\s*>\s?/.test(line)) {
+      if (inList) { out.push("</ul>"); inList = false; }
+      if (!inQuote) { out.push("<blockquote>"); inQuote = true; }
+      out.push(`<p>${inline(line.replace(/^\s*>\s?/, ""))}</p>`);
+      i++;
+      continue;
+    }
+
+    // list
+    if (/^\s*[-*]\s+/.test(line)) {
+      if (inQuote) { out.push("</blockquote>"); inQuote = false; }
+      if (!inList) { out.push("<ul>"); inList = true; }
+      out.push(`<li>${inline(line.replace(/^\s*[-*]\s+/, ""))}</li>`);
+      i++;
+      continue;
+    }
+
+    // paragraph — collect until blank line
+    closeBlocks();
+    const para = [];
+    while (i < lines.length && !/^\s*$/.test(lines[i])
+           && !/^(#{1,6})\s+/.test(lines[i])
+           && !/^\s*[-*]\s+/.test(lines[i])
+           && !/^\s*>\s?/.test(lines[i])
+           && !/^\s*---+\s*$/.test(lines[i])) {
+      para.push(lines[i]);
+      i++;
+    }
+    out.push(`<p>${inline(para.join(" "))}</p>`);
+  }
+
+  closeBlocks();
+  return out.join("\n");
+}
+
+function pageBlogList() {
+  const wrap = document.createElement('div');
+  wrap.className = 'blog-wrap';
+  wrap.innerHTML = `
+    <div class="blog-header">
+      <p class="blog-eyebrow"><span class="dot"></span>Journal</p>
+      <h1 class="blog-h1">Notes &amp; thoughts</h1>
+      <p class="blog-sub">Written between studio sessions.</p>
+      <div class="blog-view-toggle" role="tablist">
+        <button class="bvt-btn active" data-view="list" role="tab">List</button>
+        <button class="bvt-btn" data-view="map" role="tab">Map</button>
+      </div>
+    </div>
+    <div class="blog-list-view" id="blog-list-view">
+      <div class="blog-list" id="blog-list">
+        <p class="blog-loading">loading…</p>
+      </div>
+    </div>
+    <div class="blog-map-view" id="blog-map-view" hidden>
+      <div class="blog-mindmap-host"></div>
+    </div>
+  `;
+
+  // toggle handler
+  const buttons = wrap.querySelectorAll('.bvt-btn');
+  const listView = wrap.querySelector('#blog-list-view');
+  const mapView  = wrap.querySelector('#blog-map-view');
+  let mapBuilt = false;
+  let mapNode = null;
+
+  function switchView(targetView) {
+    buttons.forEach(x => x.classList.toggle('active', x.dataset.view === targetView));
+    const isMap = targetView === 'map';
+    listView.hidden = isMap;
+    mapView.hidden = !isMap;
+    if (isMap && !mapBuilt) buildMap();
+  }
+
+  buttons.forEach(b => {
+    b.addEventListener('click', () => switchView(b.dataset.view));
+  });
+
+  // if user navigated here from the mindmap, restore map view
+  if (window.__blogReturnToMap) {
+    window.__blogReturnToMap = false;
+    requestAnimationFrame(() => switchView('map'));
+  }
+
+  function buildMap() {
+    mapBuilt = true;
+    const host = wrap.querySelector('.blog-mindmap-host');
+    Promise.all([loadBlogPosts(), Promise.resolve(getAllArtworks())])
+      .then(([posts, artworks]) => {
+        if (typeof window.buildBlogMindmap !== 'function') {
+          host.innerHTML = '<p class="blog-empty">Map module failed to load.</p>';
+          return;
+        }
+        mapNode = window.buildBlogMindmap(posts, artworks);
+        host.appendChild(mapNode);
+      });
+  }
+
+  // attach cleanup so the animation loop stops on navigation
+  wrap._cleanup = () => {
+    if (mapNode && mapNode._cleanup) mapNode._cleanup();
+  };
+
+  loadBlogPosts().then(posts => {
+    const list = wrap.querySelector('#blog-list');
+    if (!posts.length) {
+      list.innerHTML = `<p class="blog-empty">No posts yet. Drop a <code>.md</code> file in the <code>blog/</code> folder to get started.</p>`;
+      return;
+    }
+    list.innerHTML = posts.map((p, i) => {
+      const num = String(i + 1).padStart(2, '0');
+      const previewSrc = p.body
+        .replace(/^\s*#.*$/m, '')
+        .split(/\r?\n\r?\n/)
+        .map(s => s.trim())
+        .find(s => s && !s.startsWith('#') && !s.startsWith('>') && !s.startsWith('-')) || '';
+      const preview = previewSrc.replace(/[*`_>#\[\]()]/g, '').slice(0, 160);
+      return `
+        <a class="blog-row" href="#blog/${encodeURIComponent(p.slug)}" data-slug="${p.slug}">
+          <span class="blog-row-num">Nº ${num}</span>
+          <span class="blog-row-body">
+            <span class="blog-row-title">${p.title}</span>
+            <span class="blog-row-preview">${preview}${preview.length >= 160 ? '…' : ''}</span>
+          </span>
+          <span class="blog-row-arrow">→</span>
+        </a>
+      `;
+    }).join('');
+
+    list.querySelectorAll('.blog-row').forEach(a => {
+      a.addEventListener('click', e => {
+        e.preventDefault();
+        window.__blogReturnToMap = false; // came from list, back button → list
+        goTo('blog/' + a.dataset.slug);
+      });
+    });
+  });
+
+  return wrap;
+}
+
+// gather every artwork in the site, normalized for the mindmap
+function getAllArtworks() {
+  const all = [];
+  const norm = (works, prefix, section, defaultMeta) => {
+    works.forEach((w, i) => {
+      const file  = typeof w === 'string' ? w : w.file;
+      const title = typeof w === 'string'
+        ? formatTitle(file)
+        : (w.title || `Untitled ${String(i + 1).padStart(2, '0')}`);
+      const slug  = file.replace(/\.(gif|jpg|png|avif)$/i, '');
+      const meta  = typeof w === 'string' ? defaultMeta : (w.meta || defaultMeta);
+      all.push({
+        section, file, slug, title, meta,
+        src: prefix + file + '?v=4',
+      });
+    });
+  };
+  norm(digitalWorks,  'assets/digital work/',       'digital',  'Digital animation');
+  norm(physicalWorks, 'assets/physical paintings/', 'physical', 'Oil on canvas');
+  norm(studiesWorks,  'assets/studies/',            'studies',  'Study');
+  return all;
+}
+
+function pageBlogPost(slug) {
+  const wrap = document.createElement('div');
+  wrap.className = 'blog-wrap blog-post-wrap';
+  wrap.innerHTML = `
+    <a class="blog-back" href="#blog">← all notes</a>
+    <article class="blog-post" id="blog-post">
+      <p class="blog-loading">loading…</p>
+    </article>
+  `;
+
+  wrap.querySelector('.blog-back').addEventListener('click', e => {
+    e.preventDefault();
+    goTo('blog');
+  });
+
+  loadBlogPosts().then(posts => {
+    const post = posts.find(p => p.slug === slug);
+    const article = wrap.querySelector('#blog-post');
+    if (!post) {
+      article.innerHTML = `<p class="blog-empty">Post not found.</p>`;
+      return;
+    }
+    article.innerHTML = `
+      <header class="blog-post-header">
+        <p class="blog-post-eyebrow">Journal entry</p>
+        <h1 class="blog-post-title">${post.title}</h1>
+      </header>
+      <div class="blog-post-body">
+        ${renderMarkdown(post.body)}
+      </div>
+    `;
+  });
+
+  return wrap;
+}
+
+function pageBlog() {
+  // hash format: #blog            -> list
+  //              #blog/some-slug  -> post
+  const hash = window.location.hash.slice(1);
+  if (hash.startsWith('blog/')) {
+    const slug = decodeURIComponent(hash.slice('blog/'.length));
+    return pageBlogPost(slug);
+  }
+  return pageBlogList();
+}
+
 function pageVideo() {
   const section = document.createElement('section');
   section.className = 'video-section';
@@ -398,6 +774,7 @@ const routes = {
   physical: pagePhysical,
   studies:  pageStudies,
   video:    pageVideo,
+  blog:     pageBlog,
   cv:       pageCV,
 };
 
@@ -406,6 +783,8 @@ let navigating = false;
 
 function getRoute() {
   const hash = window.location.hash.slice(1);
+  // blog supports nested slugs: #blog/<slug>
+  if (hash === 'blog' || hash.startsWith('blog/')) return 'blog';
   return routes[hash] ? hash : 'digital';
 }
 
@@ -425,6 +804,7 @@ function updateNavActive(route) {
     physical: 'anubis3100 — Painting',
     studies: 'anubis3100 — Studies',
     video: 'anubis3100 — Video',
+    blog: 'anubis3100 — Blog',
     cv: 'anubis3100 — CV'
   };
   document.title = titles[route] || 'anubis3100';
@@ -442,6 +822,7 @@ function renderRoute(route) {
   app.innerHTML = '';
   const wrapper = document.createElement('div');
   wrapper.className = 'page-content';
+  wrapper.dataset.route = route;
   const view = routes[route]();
   if (view._cleanup) wrapper._childCleanup = view._cleanup;
   wrapper.appendChild(view);
@@ -454,7 +835,10 @@ function renderRoute(route) {
 }
 
 function goTo(route) {
-  if (navigating || route === getRoute()) return;
+  // 'route' may be a bare key (e.g. 'blog') or a sub-path (e.g. 'blog/welcome').
+  const baseRoute = route.split('/')[0];
+  const currentHash = window.location.hash.slice(1);
+  if (navigating || route === currentHash) return;
   navigating = true;
   const currentContent = app.querySelector('.page-content');
   if (currentContent) {
@@ -462,12 +846,12 @@ function goTo(route) {
     currentContent.classList.add('leaving');
     setTimeout(() => {
       history.pushState(null, '', '#' + route);
-      renderRoute(route);
+      renderRoute(baseRoute);
       navigating = false;
     }, 280);
   } else {
     history.pushState(null, '', '#' + route);
-    renderRoute(route);
+    renderRoute(baseRoute);
     navigating = false;
   }
 }
@@ -480,6 +864,19 @@ const navLogo = document.querySelector('.nav-logo');
 if (navLogo) navLogo.addEventListener('click', e => { e.preventDefault(); goTo('digital'); });
 
 window.addEventListener('popstate', () => { if (!navigating) renderRoute(getRoute()); });
+// re-render when the hash changes within the blog (list <-> post) without animating
+window.addEventListener('hashchange', () => {
+  if (navigating) return;
+  const hash = window.location.hash.slice(1);
+  const current = app.querySelector('.page-content');
+  if ((hash === 'blog' || hash.startsWith('blog/')) && current && current.dataset.route === 'blog') {
+    renderRoute('blog');
+  }
+});
+
+// expose for the mindmap module to open posts and lightbox artworks
+window.goTo = goTo;
+window.openLightbox = (src, caption) => openLightbox(src, caption);
 
 // ── lightbox ───────────────────────────────────────────────────────────────
 
