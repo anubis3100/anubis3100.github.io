@@ -992,9 +992,17 @@ const themeToggle = document.getElementById('theme-toggle');
 if (localStorage.getItem('theme') !== 'light') document.body.classList.add('dark');
 document.documentElement.classList.remove('dark-preload');
 
+function syncThemeColor() {
+  const dark = document.body.classList.contains('dark');
+  const el = document.getElementById('meta-theme-color');
+  if (el) el.setAttribute('content', dark ? '#141311' : '#f5f3ee');
+}
+syncThemeColor(); // set on page load
+
 themeToggle.addEventListener('click', () => {
   document.body.classList.toggle('dark');
   localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+  syncThemeColor();
 });
 
 // ── initial render ─────────────────────────────────────────────────────────
