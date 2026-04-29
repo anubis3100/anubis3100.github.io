@@ -337,6 +337,7 @@ nav {
 }
 
 .viewer-artwork img.is-tilting {
+  transition: box-shadow 0.5s cubic-bezier(0.22, 1, 0.36, 1); /* no transform transition while tracking cursor */
   transform:
     translate3d(var(--float-x, 0px), var(--float-y, -10px), 20px)
     rotateX(var(--tilt-x, 0deg))

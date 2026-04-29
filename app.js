@@ -158,18 +158,23 @@ function buildViewer(works, sectionLabel) {
     hoverTarget.addEventListener('mouseenter', () => {
       imgEl.classList.add('is-tilting');
     });
+    let tiltRaf = null;
     hoverTarget.addEventListener('mousemove', (e) => {
-      // use the frame's rect — it doesn't move, so no feedback loop
-      const r = hoverTarget.getBoundingClientRect();
-      const px = (e.clientX - r.left) / r.width  - 0.5;
-      const py = (e.clientY - r.top)  / r.height - 0.5;
-      imgEl.style.setProperty('--tilt-x', (py * -9) + 'deg');
-      imgEl.style.setProperty('--tilt-y', (px *  9) + 'deg');
-      imgEl.style.setProperty('--float-x', (px *  6) + 'px');
-      imgEl.style.setProperty('--float-y', (-10 + py * 5) + 'px');
-      // directional halo — opposite side of the cursor, like light from cursor casts a glow
-      imgEl.style.setProperty('--glow-x', (-px * 40) + 'px');
-      imgEl.style.setProperty('--glow-y', (-py * 40 + 20) + 'px');
+      if (tiltRaf) return; // already have a frame queued — skip
+      tiltRaf = requestAnimationFrame(() => {
+        tiltRaf = null;
+        // use the frame's rect — it doesn't move, so no feedback loop
+        const r = hoverTarget.getBoundingClientRect();
+        const px = (e.clientX - r.left) / r.width  - 0.5;
+        const py = (e.clientY - r.top)  / r.height - 0.5;
+        imgEl.style.setProperty('--tilt-x', (py * -9) + 'deg');
+        imgEl.style.setProperty('--tilt-y', (px *  9) + 'deg');
+        imgEl.style.setProperty('--float-x', (px *  6) + 'px');
+        imgEl.style.setProperty('--float-y', (-10 + py * 5) + 'px');
+        // directional halo — opposite side of the cursor, like light from cursor casts a glow
+        imgEl.style.setProperty('--glow-x', (-px * 40) + 'px');
+        imgEl.style.setProperty('--glow-y', (-py * 40 + 20) + 'px');
+      });
     });
     hoverTarget.addEventListener('mouseleave', () => {
       imgEl.classList.remove('is-tilting');
