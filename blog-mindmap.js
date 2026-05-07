@@ -81,6 +81,7 @@
           <span><i class="lg digital"></i>Digital</span>
           <span><i class="lg physical"></i>Physical</span>
           <span><i class="lg studies"></i>Study</span>
+          <span><i class="lg graphics"></i>Graphics</span>
         </div>
         <div class="mindmap-hint" id="mm-hint"></div>
         <div class="mindmap-tip" hidden></div>
@@ -126,6 +127,7 @@
       { kind: 'hub', section: 'digital',  title: 'Digital',  route: 'digital'  },
       { kind: 'hub', section: 'physical', title: 'Painting', route: 'physical' },
       { kind: 'hub', section: 'studies',  title: 'Studies',  route: 'studies'  },
+      { kind: 'hub', section: 'graphics', title: 'Graphics', route: 'graphics' },
     ];
     const hubIndices = {};
     HUB_DEFS.forEach(h => { hubIndices[h.section] = nodes.length; nodes.push(h); });
@@ -158,12 +160,13 @@
     // cohesion force has less work to do before the layout settles.
     // posts in center, artwork clusters evenly surrounding them
     const GROUP_CENTERS = {
-      post:     [  0,    0],   // center
-      digital:  [  0, -130],  // top
-      physical: [-115,  75],  // bottom-left
-      studies:  [ 115,  75],  // bottom-right
+      post:     [   0,    0],  // center
+      digital:  [   0, -130], // top
+      physical: [-115,   75], // bottom-left
+      studies:  [ 115,   75], // bottom-right
+      graphics: [-115,  -80], // upper-left
     };
-    const groupCount = { post: 0, digital: 0, physical: 0, studies: 0 };
+    const groupCount = { post: 0, digital: 0, physical: 0, studies: 0, graphics: 0 };
     const positions = nodes.map((n) => {
       const key = n.kind === 'post' ? 'post' : n.section;
       const c   = GROUP_CENTERS[key] || [0, 0];
@@ -223,6 +226,7 @@
         digital:  cssVar('--mm-digital')  || '#1d8a7a',
         physical: cssVar('--mm-physical') || '#c98b6b',
         studies:  cssVar('--mm-studies')  || '#7b8aa8',
+        graphics: cssVar('--mm-graphics') || '#a07bc4',
       };
       const hex = palette[node.kind === 'post' ? 'post' : node.section] || '#888';
       return (alpha == null || alpha === 1) ? hex : applyAlpha(hex, alpha);
@@ -246,7 +250,7 @@
     const DAMP_PINNED = 0.50;    // stronger damping — pinned nodes float briefly then settle
 
     // pre-build group membership lists (stable across frames)
-    const groupMembers = { post: [], digital: [], physical: [], studies: [] };
+    const groupMembers = { post: [], digital: [], physical: [], studies: [], graphics: [] };
     nodes.forEach((n, i) => {
       const key = n.kind === 'post' ? 'post' : n.section;
       if (groupMembers[key]) groupMembers[key].push(i);

@@ -48,6 +48,22 @@ const studiesWorks = [
   { file: 'studies-7.png' }
 ];
 
+const graphicWorks = [
+  'bed cover.png',
+  'bookstore cover.png',
+  'fire cover.png',
+  'flood cover.png',
+  'BREAST FEEDING BLOCKCHAIN.png',
+  'claire silver remebers everything.jpg',
+  'daim alyad collection.png',
+  'history of virtual worlds.png',
+  'making it exhibition.png',
+  'matt kane is eternal.png',
+  'online but always in person.png',
+  'the concept of qualia.png',
+  'where have all the good collectors gone.png',
+];
+
 // ── helpers ────────────────────────────────────────────────────────────────
 
 function formatTitle(filename) {
@@ -132,13 +148,17 @@ function buildViewer(works, sectionLabel) {
 
   function renderSlide(i, dir) {
     const work = works[i];
+    const isPdf = work.file.toLowerCase().endsWith('.pdf');
     const slide = document.createElement('div');
     slide.className = 'viewer-slide entering';
     slide.style.setProperty('--dir', (dir >= 0 ? '40px' : '-40px'));
     slide.innerHTML = `
       <div class="viewer-artwork">
-        <div class="artwork-frame">
-          <img src="${work.src}" alt="${work.title}" data-file="${work.file}" />
+        <div class="artwork-frame${isPdf ? ' artwork-frame--pdf' : ''}">
+          ${isPdf
+            ? `<embed src="${work.src}" type="application/pdf" />`
+            : `<img src="${work.src}" alt="${work.title}" data-file="${work.file}" />`
+          }
         </div>
         <div class="viewer-caption">
           <div class="cap-index">Nº ${String(i + 1).padStart(2, '0')} · ${String(works.length).padStart(2, '0')}</div>
@@ -147,44 +167,47 @@ function buildViewer(works, sectionLabel) {
         </div>
       </div>
     `;
-    // click image opens lightbox
-    const imgEl = slide.querySelector('img');
-    imgEl.addEventListener('click', () => {
-      openLightbox(work.src, work.title);
-    });
-    // 3D tilt — bind to frame (stable bounds) instead of img (which transforms)
-    const frameEl = slide.querySelector('.artwork-frame');
-    const hoverTarget = frameEl || imgEl;
-    hoverTarget.addEventListener('mouseenter', () => {
-      imgEl.classList.add('is-tilting');
-    });
-    let tiltRaf = null;
-    hoverTarget.addEventListener('mousemove', (e) => {
-      if (tiltRaf) return; // already have a frame queued — skip
-      tiltRaf = requestAnimationFrame(() => {
-        tiltRaf = null;
-        // use the frame's rect — it doesn't move, so no feedback loop
-        const r = hoverTarget.getBoundingClientRect();
-        const px = (e.clientX - r.left) / r.width  - 0.5;
-        const py = (e.clientY - r.top)  / r.height - 0.5;
-        imgEl.style.setProperty('--tilt-x', (py * -9) + 'deg');
-        imgEl.style.setProperty('--tilt-y', (px *  9) + 'deg');
-        imgEl.style.setProperty('--float-x', (px *  6) + 'px');
-        imgEl.style.setProperty('--float-y', (-10 + py * 5) + 'px');
-        // directional halo — opposite side of the cursor, like light from cursor casts a glow
-        imgEl.style.setProperty('--glow-x', (-px * 40) + 'px');
-        imgEl.style.setProperty('--glow-y', (-py * 40 + 20) + 'px');
+
+    if (!isPdf) {
+      // click image opens lightbox
+      const imgEl = slide.querySelector('img');
+      imgEl.addEventListener('click', () => {
+        openLightbox(work.src, work.title);
       });
-    });
-    hoverTarget.addEventListener('mouseleave', () => {
-      imgEl.classList.remove('is-tilting');
-      imgEl.style.setProperty('--tilt-x', '0deg');
-      imgEl.style.setProperty('--tilt-y', '0deg');
-      imgEl.style.setProperty('--float-x', '0px');
-      imgEl.style.setProperty('--float-y', '0px');
-      imgEl.style.setProperty('--glow-x', '0px');
-      imgEl.style.setProperty('--glow-y', '24px');
-    });
+      // 3D tilt — bind to frame (stable bounds) instead of img (which transforms)
+      const frameEl = slide.querySelector('.artwork-frame');
+      const hoverTarget = frameEl || imgEl;
+      hoverTarget.addEventListener('mouseenter', () => {
+        imgEl.classList.add('is-tilting');
+      });
+      let tiltRaf = null;
+      hoverTarget.addEventListener('mousemove', (e) => {
+        if (tiltRaf) return; // already have a frame queued — skip
+        tiltRaf = requestAnimationFrame(() => {
+          tiltRaf = null;
+          // use the frame's rect — it doesn't move, so no feedback loop
+          const r = hoverTarget.getBoundingClientRect();
+          const px = (e.clientX - r.left) / r.width  - 0.5;
+          const py = (e.clientY - r.top)  / r.height - 0.5;
+          imgEl.style.setProperty('--tilt-x', (py * -9) + 'deg');
+          imgEl.style.setProperty('--tilt-y', (px *  9) + 'deg');
+          imgEl.style.setProperty('--float-x', (px *  6) + 'px');
+          imgEl.style.setProperty('--float-y', (-10 + py * 5) + 'px');
+          // directional halo — opposite side of the cursor, like light from cursor casts a glow
+          imgEl.style.setProperty('--glow-x', (-px * 40) + 'px');
+          imgEl.style.setProperty('--glow-y', (-py * 40 + 20) + 'px');
+        });
+      });
+      hoverTarget.addEventListener('mouseleave', () => {
+        imgEl.classList.remove('is-tilting');
+        imgEl.style.setProperty('--tilt-x', '0deg');
+        imgEl.style.setProperty('--tilt-y', '0deg');
+        imgEl.style.setProperty('--float-x', '0px');
+        imgEl.style.setProperty('--float-y', '0px');
+        imgEl.style.setProperty('--glow-x', '0px');
+        imgEl.style.setProperty('--glow-y', '24px');
+      });
+    }
 
     // caption tilt on hover
     const capEl = slide.querySelector('.viewer-caption');
@@ -303,6 +326,62 @@ function pageStudies() {
     normalize(studiesWorks, 'assets/studies/', 'Study'),
     'Painting — Studies'
   );
+}
+const mocaWorks = [
+  { file: 'moca-show-notes-1.png', title: 'Page 01', meta: 'MOCA Show Notes' },
+  { file: 'moca-show-notes-2.png', title: 'Page 02', meta: 'MOCA Show Notes' },
+  { file: 'moca-show-notes-3.png', title: 'Page 03', meta: 'MOCA Show Notes' },
+  { file: 'moca-show-notes-4.png', title: 'Page 04', meta: 'MOCA Show Notes' },
+  { file: 'moca-show-notes-5.png', title: 'Page 05', meta: 'MOCA Show Notes' },
+  { file: 'moca-show-notes-6.png', title: 'Page 06', meta: 'MOCA Show Notes' },
+  { file: 'moca-show-notes-7.png', title: 'Page 07', meta: 'MOCA Show Notes' },
+];
+
+function pageGraphicsMoca() {
+  const container = document.createElement('div');
+  container.className = 'graphics-wrap';
+
+  const backBtn = document.createElement('a');
+  backBtn.className = 'blog-back graphics-moca-back';
+  backBtn.href = '#graphics';
+  backBtn.textContent = '← Graphics';
+  backBtn.addEventListener('click', e => { e.preventDefault(); goTo('graphics'); });
+
+  const viewer = buildViewer(
+    normalize(mocaWorks, 'assets/graphic design/', ''),
+    'Graphics — MOCA Show Notes'
+  );
+  if (viewer._cleanup) container._cleanup = viewer._cleanup;
+
+  container.appendChild(backBtn);
+  container.appendChild(viewer);
+  return container;
+}
+
+function pageGraphics() {
+  const hash = window.location.hash.slice(1);
+  if (hash === 'graphics/moca-show-notes') return pageGraphicsMoca();
+
+  const container = document.createElement('div');
+  container.className = 'graphics-wrap';
+
+  const viewer = buildViewer(
+    normalize(graphicWorks, 'assets/graphic design/', 'Graphic design'),
+    'Graphics'
+  );
+  if (viewer._cleanup) container._cleanup = viewer._cleanup;
+
+  const mocaLink = document.createElement('div');
+  mocaLink.className = 'graphics-moca-link';
+  mocaLink.innerHTML = `<a href="#graphics/moca-show-notes">MOCA Show Notes <span class="graphics-moca-arrow">→</span></a>`;
+  mocaLink.querySelector('a').addEventListener('click', e => {
+    e.preventDefault();
+    goTo('graphics/moca-show-notes');
+  });
+
+  container.appendChild(viewer);
+  container.appendChild(mocaLink);
+  return container;
 }
 
 // ── blog ───────────────────────────────────────────────────────────────────
@@ -664,6 +743,7 @@ function getAllArtworks() {
   norm(digitalWorks,  'assets/digital work/',       'digital',  'Digital animation');
   norm(physicalWorks, 'assets/physical paintings/', 'physical', 'Oil on canvas');
   norm(studiesWorks,  'assets/studies/',            'studies',  'Study');
+  norm(graphicWorks,  'assets/graphic design/',     'graphics', 'Graphic design');
   return all;
 }
 
@@ -811,6 +891,7 @@ const routes = {
   digital:  pageDigital,
   physical: pagePhysical,
   studies:  pageStudies,
+  graphics: pageGraphics,
   video:    pageVideo,
   blog:     pageBlog,
   cv:       pageCV,
@@ -823,6 +904,8 @@ function getRoute() {
   const hash = window.location.hash.slice(1);
   // blog supports nested slugs: #blog/<slug>
   if (hash === 'blog' || hash.startsWith('blog/')) return 'blog';
+  // graphics supports sub-pages: #graphics/<page>
+  if (hash === 'graphics' || hash.startsWith('graphics/')) return 'graphics';
   return routes[hash] ? hash : 'digital';
 }
 
@@ -834,6 +917,10 @@ function updateNavActive(route) {
   if (paintingToggleEl) {
     paintingToggleEl.classList.toggle('active', route === 'physical' || route === 'studies');
   }
+  const graphicsToggleEl = document.getElementById('graphics-toggle');
+  if (graphicsToggleEl) {
+    graphicsToggleEl.classList.toggle('active', route === 'graphics');
+  }
   document.querySelectorAll('.dropdown-menu a[data-route]').forEach(a => {
     a.classList.toggle('active', a.dataset.route === route);
   });
@@ -841,6 +928,7 @@ function updateNavActive(route) {
     digital: 'anubis3100',
     physical: 'anubis3100 — Painting',
     studies: 'anubis3100 — Studies',
+    graphics: 'anubis3100 — Graphics',
     video: 'anubis3100 — Video',
     blog: 'anubis3100 — Blog',
     cv: 'anubis3100 — CV'
@@ -910,6 +998,9 @@ window.addEventListener('hashchange', () => {
   if ((hash === 'blog' || hash.startsWith('blog/')) && current && current.dataset.route === 'blog') {
     renderRoute('blog');
   }
+  if ((hash === 'graphics' || hash.startsWith('graphics/')) && current && current.dataset.route === 'graphics') {
+    renderRoute('graphics');
+  }
 });
 
 // expose for the mindmap module to open posts and lightbox artworks
@@ -965,6 +1056,14 @@ paintingToggle.addEventListener('click', e => {
   if (window.innerWidth >= 768) paintingMenu.classList.toggle('open');
 });
 
+const graphicsToggle = document.getElementById('graphics-toggle');
+const graphicsMenu   = document.getElementById('graphics-menu');
+
+graphicsToggle.addEventListener('click', e => {
+  e.stopPropagation();
+  if (window.innerWidth >= 768) graphicsMenu.classList.toggle('open');
+});
+
 // ── mobile nav ─────────────────────────────────────────────────────────────
 
 const navBurger    = document.getElementById('nav-burger');
@@ -973,6 +1072,7 @@ const navOverlay   = document.getElementById('nav-overlay');
 
 function closeAllMenus() {
   paintingMenu.classList.remove('open');
+  graphicsMenu.classList.remove('open');
   navBurger.classList.remove('open');
   navLinksList.classList.remove('mobile-open');
   if (navOverlay) navOverlay.classList.remove('active');

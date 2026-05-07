@@ -336,6 +336,99 @@ nav {
   display: inline-block;
 }
 
+/* PDF embed — fills the frame like an image */
+.artwork-frame--pdf {
+  display: block;
+  width: min(720px, 90vw);
+}
+.artwork-frame--pdf embed {
+  display: block;
+  width: 100%;
+  height: min(72vh, 640px);
+  border: none;
+  box-shadow:
+    0 2px 4px color-mix(in oklab, var(--ink) 8%, transparent),
+    0 30px 60px -20px color-mix(in oklab, var(--ink) 18%, transparent);
+}
+
+/* ── Graphics page ─────────────────────────────────────────────────────────── */
+
+.graphics-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+/* Link from gallery → MOCA sub-page */
+.graphics-moca-link {
+  display: flex;
+  justify-content: flex-end;
+  padding: 24px 48px 40px;
+}
+.graphics-moca-link a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink);
+  opacity: 0.5;
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+.graphics-moca-link a:hover {
+  opacity: 1;
+}
+.graphics-moca-arrow {
+  transition: transform 0.2s;
+}
+.graphics-moca-link a:hover .graphics-moca-arrow {
+  transform: translateX(4px);
+}
+
+/* MOCA back link above viewer */
+.graphics-moca-back {
+  display: inline-block;
+  padding: 24px 48px 0;
+}
+@media (max-width: 600px) {
+  .graphics-moca-back { padding: 16px 20px 0; }
+}
+
+/* MOCA sub-page */
+.graphics-pdf-wrap {
+  padding: 40px 48px 80px;
+  max-width: 900px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+.graphics-pdf-inner {
+  margin-top: 32px;
+}
+.graphics-pdf-title {
+  font-size: clamp(1.4rem, 3vw, 2.2rem);
+  font-weight: 400;
+  margin: 8px 0 32px;
+  letter-spacing: -0.01em;
+}
+.graphics-pdf-embed {
+  display: block;
+  width: 100%;
+  height: min(80vh, 900px);
+  border: none;
+  box-shadow:
+    0 2px 4px color-mix(in oklab, var(--ink) 8%, transparent),
+    0 30px 60px -20px color-mix(in oklab, var(--ink) 18%, transparent);
+}
+
+@media (max-width: 600px) {
+  .graphics-moca-link { padding: 16px 20px 32px; }
+  .graphics-pdf-wrap  { padding: 24px 20px 60px; }
+  .graphics-pdf-embed { height: 70vh; }
+}
+
 .viewer-artwork img.is-tilting {
   transition: box-shadow 0.5s cubic-bezier(0.22, 1, 0.36, 1); /* no transform transition while tracking cursor */
   transform:
@@ -1498,6 +1591,7 @@ footer a:hover { color: var(--ink); }
   --mm-digital:  #1d8a7a;
   --mm-physical: #c98b6b;
   --mm-studies:  #7888c0;
+  --mm-graphics: #a07bc4;
 }
 
 .mindmap-empty {
@@ -1537,6 +1631,7 @@ footer a:hover { color: var(--ink); }
 .mindmap-legend .lg.digital  { background: #1d8a7a; box-shadow: 0 0 8px #1d8a7a; }
 .mindmap-legend .lg.physical { background: #c98b6b; box-shadow: 0 0 8px #c98b6b; }
 .mindmap-legend .lg.studies  { background: #7888c0; box-shadow: 0 0 8px #7888c0; }
+.mindmap-legend .lg.graphics { background: #a07bc4; box-shadow: 0 0 8px #a07bc4; }
 
 .mindmap-hint {
   position: absolute;
