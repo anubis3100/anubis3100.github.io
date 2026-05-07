@@ -49,19 +49,19 @@ const studiesWorks = [
 ];
 
 const graphicWorks = [
-  'bed cover.png',
-  'bookstore cover.png',
-  'fire cover.png',
-  'flood cover.png',
-  'BREAST FEEDING BLOCKCHAIN.png',
+  'bed cover.jpg',
+  'bookstore cover.jpg',
+  'fire cover.jpg',
+  'flood cover.jpg',
+  'BREAST FEEDING BLOCKCHAIN.jpg',
   'claire silver remebers everything.jpg',
-  'daim alyad collection.png',
-  'history of virtual worlds.png',
-  'making it exhibition.png',
-  'matt kane is eternal.png',
-  'online but always in person.png',
-  'the concept of qualia.png',
-  'where have all the good collectors gone.png',
+  'daim alyad collection.jpg',
+  'history of virtual worlds.jpg',
+  'making it exhibition.jpg',
+  'matt kane is eternal.jpg',
+  'online but always in person.jpg',
+  'the concept of qualia.jpg',
+  'where have all the good collectors gone.jpg',
 ];
 
 // ── helpers ────────────────────────────────────────────────────────────────
@@ -328,13 +328,13 @@ function pageStudies() {
   );
 }
 const mocaWorks = [
-  { file: 'moca-show-notes-1.png', title: 'Page 01', meta: 'MOCA Show Notes' },
-  { file: 'moca-show-notes-2.png', title: 'Page 02', meta: 'MOCA Show Notes' },
-  { file: 'moca-show-notes-3.png', title: 'Page 03', meta: 'MOCA Show Notes' },
-  { file: 'moca-show-notes-4.png', title: 'Page 04', meta: 'MOCA Show Notes' },
-  { file: 'moca-show-notes-5.png', title: 'Page 05', meta: 'MOCA Show Notes' },
-  { file: 'moca-show-notes-6.png', title: 'Page 06', meta: 'MOCA Show Notes' },
-  { file: 'moca-show-notes-7.png', title: 'Page 07', meta: 'MOCA Show Notes' },
+  { file: 'moca-show-notes-1.jpg', title: 'Page 01', meta: 'MOCA Show Notes' },
+  { file: 'moca-show-notes-2.jpg', title: 'Page 02', meta: 'MOCA Show Notes' },
+  { file: 'moca-show-notes-3.jpg', title: 'Page 03', meta: 'MOCA Show Notes' },
+  { file: 'moca-show-notes-4.jpg', title: 'Page 04', meta: 'MOCA Show Notes' },
+  { file: 'moca-show-notes-5.jpg', title: 'Page 05', meta: 'MOCA Show Notes' },
+  { file: 'moca-show-notes-6.jpg', title: 'Page 06', meta: 'MOCA Show Notes' },
+  { file: 'moca-show-notes-7.jpg', title: 'Page 07', meta: 'MOCA Show Notes' },
 ];
 
 function pageGraphicsMoca() {
