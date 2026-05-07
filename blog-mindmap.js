@@ -82,6 +82,7 @@
           <span><i class="lg physical"></i>Physical</span>
           <span><i class="lg studies"></i>Study</span>
           <span><i class="lg graphics"></i>Graphics</span>
+          <span><i class="lg moca"></i>Show Notes</span>
         </div>
         <div class="mindmap-hint" id="mm-hint"></div>
         <div class="mindmap-tip" hidden></div>
@@ -123,11 +124,12 @@
 
     // hub nodes — one per cluster, bigger, always-labelled, navigate to section on click
     const HUB_DEFS = [
-      { kind: 'hub', section: 'post',     title: 'Journal',  route: 'blog'     },
-      { kind: 'hub', section: 'digital',  title: 'Digital',  route: 'digital'  },
-      { kind: 'hub', section: 'physical', title: 'Painting', route: 'physical' },
-      { kind: 'hub', section: 'studies',  title: 'Studies',  route: 'studies'  },
-      { kind: 'hub', section: 'graphics', title: 'Graphics', route: 'graphics' },
+      { kind: 'hub', section: 'post',     title: 'Journal',     route: 'blog'                    },
+      { kind: 'hub', section: 'digital',  title: 'Digital',     route: 'digital'                 },
+      { kind: 'hub', section: 'physical', title: 'Painting',    route: 'physical'                },
+      { kind: 'hub', section: 'studies',  title: 'Studies',     route: 'studies'                 },
+      { kind: 'hub', section: 'graphics', title: 'Graphics',    route: 'graphics'                },
+      { kind: 'hub', section: 'moca',     title: 'Show Notes',  route: 'graphics/moca-show-notes' },
     ];
     const hubIndices = {};
     HUB_DEFS.forEach(h => { hubIndices[h.section] = nodes.length; nodes.push(h); });
@@ -144,12 +146,16 @@
       if (hubIndices[key] != null) edges.push({ from: i, to: hubIndices[key] });
     });
 
-    // journal hub is the root — connect it to every other hub
+    // journal hub is the root — connect it to every other hub except moca (sub-hub)
     const journalHubIdx = hubIndices['post'];
     if (journalHubIdx != null) {
       Object.entries(hubIndices).forEach(([section, hi]) => {
-        if (section !== 'post') edges.push({ from: journalHubIdx, to: hi });
+        if (section !== 'post' && section !== 'moca') edges.push({ from: journalHubIdx, to: hi });
       });
+    }
+    // moca is a sub-hub of graphics — connect graphics hub to moca hub
+    if (hubIndices['graphics'] != null && hubIndices['moca'] != null) {
+      edges.push({ from: hubIndices['graphics'], to: hubIndices['moca'] });
     }
 
     const adj = new Map();
@@ -165,8 +171,9 @@
       physical: [-115,   75], // bottom-left
       studies:  [ 115,   75], // bottom-right
       graphics: [-115,  -80], // upper-left
+      moca:     [-200, -140], // near graphics, further out
     };
-    const groupCount = { post: 0, digital: 0, physical: 0, studies: 0, graphics: 0 };
+    const groupCount = { post: 0, digital: 0, physical: 0, studies: 0, graphics: 0, moca: 0 };
     const positions = nodes.map((n) => {
       const key = n.kind === 'post' ? 'post' : n.section;
       const c   = GROUP_CENTERS[key] || [0, 0];
@@ -227,6 +234,7 @@
         physical: cssVar('--mm-physical') || '#c98b6b',
         studies:  cssVar('--mm-studies')  || '#7b8aa8',
         graphics: cssVar('--mm-graphics') || '#a07bc4',
+        moca:     cssVar('--mm-moca')     || '#c4a8e0',
       };
       const hex = palette[node.kind === 'post' ? 'post' : node.section] || '#888';
       return (alpha == null || alpha === 1) ? hex : applyAlpha(hex, alpha);
@@ -250,7 +258,7 @@
     const DAMP_PINNED = 0.50;    // stronger damping — pinned nodes float briefly then settle
 
     // pre-build group membership lists (stable across frames)
-    const groupMembers = { post: [], digital: [], physical: [], studies: [], graphics: [] };
+    const groupMembers = { post: [], digital: [], physical: [], studies: [], graphics: [], moca: [] };
     nodes.forEach((n, i) => {
       const key = n.kind === 'post' ? 'post' : n.section;
       if (groupMembers[key]) groupMembers[key].push(i);
@@ -639,6 +647,11 @@
         window.__blogReturnToMap = true;
         if (typeof window.goTo === 'function') window.goTo('blog/' + n.slug);
         else window.location.hash = 'blog/' + n.slug;
+      } else if (n.section === 'moca') {
+        // moca pages live inside the graphics/moca-show-notes viewer
+        window.__introTarget = { route: 'graphics', index: n.sectionIndex || 0 };
+        if (typeof window.goTo === 'function') window.goTo('graphics/moca-show-notes');
+        else window.location.hash = 'graphics/moca-show-notes';
       } else {
         window.__introTarget = { route: n.section, index: n.sectionIndex || 0 };
         if (typeof window.goTo === 'function') window.goTo(n.section);

@@ -1592,6 +1592,7 @@ footer a:hover { color: var(--ink); }
   --mm-physical: #c98b6b;
   --mm-studies:  #7888c0;
   --mm-graphics: #a07bc4;
+  --mm-moca:     #c4a8e0;
 }
 
 .mindmap-empty {
@@ -1632,6 +1633,7 @@ footer a:hover { color: var(--ink); }
 .mindmap-legend .lg.physical { background: #c98b6b; box-shadow: 0 0 8px #c98b6b; }
 .mindmap-legend .lg.studies  { background: #7888c0; box-shadow: 0 0 8px #7888c0; }
 .mindmap-legend .lg.graphics { background: #a07bc4; box-shadow: 0 0 8px #a07bc4; }
+.mindmap-legend .lg.moca     { background: #c4a8e0; box-shadow: 0 0 8px #c4a8e0; }
 
 .mindmap-hint {
   position: absolute;

@@ -744,6 +744,7 @@ function getAllArtworks() {
   norm(physicalWorks, 'assets/physical paintings/', 'physical', 'Oil on canvas');
   norm(studiesWorks,  'assets/studies/',            'studies',  'Study');
   norm(graphicWorks,  'assets/graphic design/',     'graphics', 'Graphic design');
+  norm(mocaWorks,     'assets/graphic design/',     'moca',     'MOCA Show Notes');
   return all;
 }
 
