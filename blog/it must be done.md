@@ -1,4 +1,4 @@
-#it must be done
+# it must be done
 
 > skin the unexplored duck!
 it must be done. sometimes a few things feels scary, sometimes everything feels scary. as much as i tell my friends that it will be ok, that they will succede in this life and their endevours.
